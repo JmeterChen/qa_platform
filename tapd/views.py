@@ -1,0 +1,109 @@
+import json
+from django.http import JsonResponse, HttpResponseRedirect
+from django.shortcuts import render
+from tapd.common.api import *
+from tapd.models import *
+from django.db.models import Q
+
+from tapd.common.dingDing import *
+from datetime import datetime
+
+# Create your views here.
+
+
+def get_tapd_data(request):
+	data_dict = json.loads(request.body)
+	# 从请求中获取请求参数
+	event = data_dict.get("event")
+	event_from = data_dict.get("event_from")
+	project_id = data_dict.get("workspace_id")
+	work_id = data_dict.get("id")
+	secret = data_dict.get("secret")
+	created_time = data_dict.get("created")
+	
+	# 获取新建的工作对象详情
+	data = get_work_detial_by_id(project_id, work_id)
+	title = data.get("data", {}).get("Bug", {}).get("title")  # 标题
+	current_owner = data.get("data", {}).get("Bug", {}).get("current_owner")  # 处理人
+	email = get_user_email_by_name(project_id, current_owner)  # 拿到邮箱
+	# 调用
+	code = push_ding([email], content=f'请尽快处理处理测试bug: {title}')
+	if code == 200:
+		res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
+	else:
+		res = {"code": 10001, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
+	return JsonResponse(res)
+
+
+def token_add(request):
+	url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
+	
+	data_dict = json.loads(request.body)
+	projectName = data_dict.get("projectName")
+	# print(projectName)
+	projectId = data_dict.get("projectId")
+	# 将钉钉的token转换成智敏服务链接
+	robotToken = url_NF + data_dict.get("robotToken").split('?')[-1]
+	userName = data_dict.get("userName")
+	
+	if projectName and projectId and robotToken and userName:
+		# p = ProjectToken.objects.filter(projectName=projectName)
+		p_id = ProjectToken.objects.filter(projectId=projectId)
+		if not p_id.exists():
+			try:
+				ProjectToken.objects.create(**{"projectName": projectName, "projectId": projectId, "robotToken": robotToken,
+				                            "userName": userName})
+				res = {'code': 200, 'msg': '新增项目配置成功！', 'data': data_dict}
+			except Exception as e:
+				res = {"code": 99999, 'msg': f"添加数据出现异常：{e}"}
+		else:
+			res = {'code': 10001, 'msg': '项目ID已经存在，请前往TAPD确认正确的项目参数！'}
+	else:
+		res = {'code': 10003, 'msg': '缺少必填参数！'}
+	return JsonResponse(res)
+
+
+def tokens(request):
+	users = ProjectToken.objects.all()
+	userList = []
+	for i in users:
+		i_dict = {"id": i.id, "projectName": i.projectName, "projectId": i.projectId, "robotToken": i.robotToken,
+		          "userName": i.userName}
+		userList.append(i_dict)
+	return render(request, 'tapd/token.html', {"userList": userList})
+
+
+def del_token(request):
+	del_data = json.loads(request.body)
+	projectId = del_data.get("projectId")
+	try:
+		ProjectToken.objects.filter(projectId=projectId).delete()
+		res = {"code": 200, 'msg': "删除数据成功"}
+	except Exception as e:
+		res = {"code": 99999, 'msg': f"删除数据出现异常：{e}"}
+	return JsonResponse(res)
+	
+
+def search(request):
+	keyword = request.GET.get("keyword")
+	if keyword:
+		p = ProjectToken.objects.filter(Q(projectName__icontains=keyword) | Q(userName__icontains=keyword) |
+		                                Q(projectId__icontains=keyword)).values(
+			"projectName", "projectId", "robotToken", "userName"
+		)
+	else:
+		p = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "userName")
+	return JsonResponse({"projects": list(p)})
+
+
+def updateToken(request):
+	data_dict = json.loads(request.body)
+	projectName = data_dict.get('projectName')
+	projectId = data_dict.get("projectId")
+	robotToken = data_dict.get("robotToken")
+	try:
+		ProjectToken.objects.filter(projectId=projectId).update(projectName=projectName, robotToken=robotToken, sys_time=datetime.now())
+		res = {"code": 200, 'msg': "数据更新成功", "data": data_dict}
+	except Exception as e:
+		res = {"code": 99999, "msg": f"数据更新出现异常：{e}"}
+	return JsonResponse(res)

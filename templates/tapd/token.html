@@ -1,0 +1,306 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> {% block title %} {% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'font-awesome-4.7.0/css/font-awesome.min.css' %}">
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/addToken.js' %}"></script>
+</head>
+{#<body style="background-image: url('{% static "img/background.jpg" %}')">#}
+<body>
+    <div style="padding: 16px">
+    <h1 style="color: black;margin-left: 80px;margin-bottom: 32px;font-family: 微软雅黑">TPAD项目token管理页面</h1>
+        <div class="row col-lg-12 col-md-12 col-sm-12" style="margin-bottom: 32px">
+              <div class="col-lg-6">
+                <div class="input-group">
+                  <input type="text" class="form-control" placeholder="请输入搜索字符..." id="search_str">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="search_btn">点击搜索</button>
+                      <button type="button" class="btn btn-primary " data-toggle="modal" data-target="#add" style="margin-left: 32px">
+                          添加项目配置
+                      </button>
+                  </span>
+                </div><!-- /input-group -->
+              </div><!-- /.col-lg-6 -->
+        </div>
+
+
+        <!-- Button trigger modal -->
+        <div class="row col-lg-12 col-md-12 col-sm-12" id="data_list">
+            <table class="table table-hover table-bordered ">
+                <thead>
+                    <th>序号</th>
+                    <th>项目名称</th>
+                    <th>TAPD项目ID</th>
+                    <th>机器人Token</th>
+                    <th>创建人</th>
+                    <th>操作</th>
+                </thead>
+                <tbody>
+                    {% for u in userList %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ u.projectName }}</td>
+                            <td>{{ u.projectId }}</td>
+                            <td>{{ u.robotToken }}</td>
+                            <td>{{ u.userName }}</td>
+                            <td>
+                              <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#update" id="edi_button"
+                                      projectId="{{ u.projectId }}" actionType="edit" onclick="actionEdit({{ u }})">
+                                  编辑
+                              </button>
+                              <button type="button" class="btn btn-danger" data-toggle="modal" id="del_button"
+                                      projectId="{{ u.projectId }}" actionType="delete" onclick="actionDel({{ u.projectId }})">
+                                  删除
+                              </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+<!-- Modal add-->
+<div class="modal fade" id="add" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="addModalLabel">新增</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+             <div class="form-group">
+                 <label >项目名称</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="add_projectName" placeholder="项目名称">
+             </div>
+             <div class="form-group">
+                 <label >TAPD项目ID</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="add_projectId" placeholder="TAPD项目ID">
+             </div>
+           <div class="form-group">
+                 <label >机器人Token</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="add_robotToken" placeholder="机器人Token">
+             </div>
+            <div class="form-group">
+                 <label >创建人名称</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="add_userName" placeholder="创建人名称">
+             </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="add-submit">提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal edit-->
+<div class="modal fade" id="update" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="editModalLabel">编辑</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+             <div class="form-group">
+                 <label >项目名称</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="edit_projectName" placeholder="项目名称">
+             </div>
+             <div class="form-group">
+                 <label >TAPD项目ID</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="edit_projectId" placeholder="TAPD项目ID" disabled>
+             </div>
+           <div class="form-group">
+                 <label >机器人Token</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="edit_robotToken" placeholder="机器人Token">
+             </div>
+            <div class="form-group">
+                 <label >创建人名称</label>
+                 <input type="text" name="txt_departmentname" class="form-control" id="edit_userName" placeholder="创建人名称" disabled>
+             </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="edit-submit" onclick="sure_update()">提交</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+</div>
+</body>
+<script>
+    function actionEdit(u){
+        $('#edit_projectName').val(u.projectName);
+        $('#edit_projectId').val(u.projectId);
+        $('#edit_robotToken').val(u.robotToken);
+        $('#edit_userName').val(u.userName);
+    }
+
+    /* 编辑逻辑*/
+    function sure_update() {
+        var projectName = $('#edit_projectName').val();
+        var robotToken = $('#edit_robotToken').val();
+        var projectId = $('#edit_projectId').val();
+        var userName = $('#edit_userName').val();
+        $.ajax({
+            type: "post",
+            url: "/tapd/update_projects/",
+            contentType: "application/json",
+            dataType: "json",
+           data: JSON.stringify({
+               projectId: projectId,
+               robotToken: robotToken,
+               projectName: projectName,
+               userName: userName
+            }),
+            success:function (data) {
+                if (data.code == 200){
+                    $("#update").removeClass("in");
+                    $(".modal-backdrop").removeClass("in");
+                    location.reload()
+                } else {
+			    /* TODO 这里需要处理响 code 不是200的情况*/
+				$('#wrongpwd-modal-body').html(data.msg);
+				$('#wrongpwd-modal').modal({
+        			keyboard: true
+    			});
+			}
+            }
+
+        })
+    }
+
+    /*删除逻辑*/
+    function actionDel(projectId){
+        $.ajax({
+            type: "delete",
+            url: "/tapd/del_token/",
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify({
+                projectId: projectId
+            }),
+            success:function (data) {
+                if (data.code == 200){
+{#                $("#add").removeClass("in");#}
+{#				$(".modal-backdrop").removeClass("in");#}
+                location.reload()
+                }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(errorThrown);
+            }
+        })
+    }
+
+    /* 点击查询按钮逻辑*/
+    $("#search_btn").click(function () {
+{#        debugger#}
+        var search_str = $("#search_str").val();
+        $.get('/tapd/search?keyword='+search_str, function(data){
+{#            debugger#}
+            if(data.projects.length > 0){
+                $('tbody').empty();
+                for (var i=0; i<data.projects.length; i++){
+                    var b = Number(i) + 1;
+                    $('tbody').append("<tr>" +
+                            "<td>" + b + "</td>"+
+                            "<td>" + data.projects[i].projectName + "</td>"+
+                            "<td>" + data.projects[i].projectId + "</td>"+
+                            "<td>" + data.projects[i].robotToken + "</td>"+
+                            "<td>" + data.projects[i].userName + "</td>"+
+                            "<td> <button type=\"button\" class=\"btn btn-warning\" data-toggle=\"modal\" " +
+                        "data-target=\"#update\" id=\"edi_button\" projectId=\"{{ u.projectId }}\" actionType=\"edit\" onclick=\"actionEdit({{ u.projectName }}, {{ u.projectId }}, {{ u.robotToken}}, {{ u.userName }})\">编辑 </button> <button type=\"button\" class=\"btn btn-danger\" data-toggle=\"modal\" id=\"del_button\"projectId=\"{{ u.projectId }}\" actionType=\"delete\" onclick=\"actionDel({{ u.projectId }})\"> 删除 </button> </td>"
+                        + "</tr>"
+                    );
+                }
+            }
+            else {
+                alert("未找到符合条件的需求！");
+                window.location.reload();
+            }
+        })
+    });
+
+    /*添加逻辑*/
+    $('#add-submit').click(function(){
+	$('#add-submit').addClass('disabled');
+	$('#add-submit').prop('disabled', true);
+	addToken();
+    });
+
+    function addToken() {
+	var projectName = $('#add_projectName');
+	var projectId = $('#add_projectId');
+    var robotToken = $('#add_robotToken');
+	var createUser = $('#add_userName');
+    $.ajax({
+        type: "post",
+        url: "/tapd/add_pro_token/",
+        contentType: "application/json",
+        dataType: "json",
+        data: JSON.stringify({
+			projectName: projectName.val(),
+            projectId: projectId.val(),
+            robotToken: robotToken.val(),
+            userName: createUser.val()
+        }),
+        complete: function () {
+        	$('#add-submit').removeClass('disabled');
+        	$('#add-submit').prop('disabled', false);
+        },
+        success: function (data) {
+			if (data.code == 200) {
+{#			    debugger#}
+			    $('#add_projectName').val("");
+			    $('#add_projectId').val("");
+			    $('#add_robotToken').val("");
+			    $('#add_userName').val("");
+				$("#add").removeClass("in");
+				$(".modal-backdrop").removeClass("in");
+                location.reload()
+			} else {
+			    /* TODO 这里需要处理响 code 不是200的情况*/
+				$('#wrongpwd-modal-body').html(data.msg);
+				$('#wrongpwd-modal').modal({
+        			keyboard: true
+    			});
+			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			alert(errorThrown);
+        }
+    });
+};
+
+{#    /*这里是通过父元素事件委托绑定事件*/#}
+{#    $("#data_list").on('click',function (e) {#}
+{#        console.log($(e.target).attr('projectId'));#}
+{#        console.log($(e.target).attr('actionType'));#}
+{#       var  projectId = $(e.target).attr('projectId');#}
+{#       var  actionType = $(e.target).attr('actionType');#}
+{#        delToken(projectId, actionType)#}
+{##}
+{#    });#}
+{##}
+{#    function delToken(projectId, actionType){#}
+{#        alert(projectId);#}
+{#        alert(actionType)#}
+{#    }#}
+</script>
+</html>
