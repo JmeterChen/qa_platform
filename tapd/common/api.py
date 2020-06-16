@@ -51,19 +51,45 @@ def get_users_by_proId(pro_id, *args):
 	return r_data
 
 
-def get_user_email_by_name(pro_id, name=None):
+def get_usersList(userStr) -> list:
+	"""
+	:param userStr:  人名字符串
+	:return:
+	"""
+	currentOwnerList = userStr.split(';') if userStr.__contains__(';') else [userStr]
+	OwnerList = list(filter(None, currentOwnerList))
+	return OwnerList
+
+
+def get_user_email_by_name(pro_id, OwnerList) -> list:
 	"""
 	:param pro_id:      # 项目ID
-	:param name:        # 处理人name
+	:param OwnerList:   # 处理人name
 	:return:            # 处理人房多多邮箱账号
 	"""
 	res = get_users_by_proId(pro_id, "user", "email")
 	data_list = jsonpath(res, "$..UserWorkspace")
-	for i in data_list:
-		if i["user"] == name:
-			return i["email"]
+	if len(OwnerList) == 1:
+		for i in data_list:
+			if i["user"] == OwnerList[0]:
+				return [i["email"]]
+	else:
+		email_list = []
+		for m in OwnerList:
+			for i in data_list:
+				if i["user"] == m:
+					email_list.append(i["email"])
+		return email_list
 
 
 if __name__ == '__main__':
 	project_id = 60765812
-	print(get_user_email_by_name(project_id, "文建"))
+	work_id = 1160765812001017396
+	# print(get_user_email_by_name(project_id, "文建"))
+	data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
+	print(data)
+	# get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
+	# current_owner = get_usersList(data.get("current_owner"))
+	# print(current_owner)
+	# email = get_user_email_by_name(project_id, current_owner)
+	# print(email)

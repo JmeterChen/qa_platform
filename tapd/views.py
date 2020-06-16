@@ -22,16 +22,20 @@ def get_tapd_data(request):
 	created_time = data_dict.get("created")
 	
 	# 获取新建的工作对象详情
-	data = get_work_detial_by_id(project_id, work_id)
-	title = data.get("data", {}).get("Bug", {}).get("title")  # 标题
-	current_owner = data.get("data", {}).get("Bug", {}).get("current_owner")  # 处理人
-	email = get_user_email_by_name(project_id, current_owner)  # 拿到邮箱
+	data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
+	# BugTitle = data.get("title")  # 标题
+	# lastModify = data.get("lastModify")  # bug 流转来源
+	currentOwner = data.get("current_owner")  # 当前处理人 可能是多个；
+	
+	OwnerList = get_usersList(currentOwner)
+	emailList = get_user_email_by_name(project_id, OwnerList)  # 拿到邮箱
+	
 	# 调用
-	code = push_ding([email], content=f'请尽快处理处理测试bug: {title}')
+	code = push_ding(emailList, content=data, project_id=project_id, work_id=work_id)
 	if code == 200:
 		res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
 	else:
-		res = {"code": 10001, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
+		res = {"code": code, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
 	return JsonResponse(res)
 
 
@@ -64,13 +68,8 @@ def token_add(request):
 
 
 def tokens(request):
-	users = ProjectToken.objects.all()
-	userList = []
-	for i in users:
-		i_dict = {"id": i.id, "projectName": i.projectName, "projectId": i.projectId, "robotToken": i.robotToken,
-		          "userName": i.userName}
-		userList.append(i_dict)
-	return render(request, 'tapd/token.html', {"userList": userList})
+	users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "userName")
+	return render(request, 'tapd/token.html', {"userList": list(users)})
 
 
 def del_token(request):
