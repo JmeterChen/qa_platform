@@ -23,8 +23,6 @@ def get_tapd_data(request):
 	
 	# 获取新建的工作对象详情
 	data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
-	# BugTitle = data.get("title")  # 标题
-	# lastModify = data.get("lastModify")  # bug 流转来源
 	currentOwner = data.get("current_owner")  # 当前处理人 可能是多个；
 	
 	OwnerList = get_usersList(currentOwner)
