@@ -43,7 +43,7 @@ def push_ding(emailList, content=None, project_id=None, work_id=None, **kwargs):
 				"msgtype": "markdown",
 				"markdown": {
 					"title": "测试BUG待处理",
-					"text": f'##### 你有一个新BUG：{content.get("title")} \n {to_person} \n > - 项目名称：{content.get("module")} \n > - bug来源: {content.get("lastmodify")} \n > - bug 处理人: {content.get("current_owner")} \n > - [bug详情链接:{bugLink}]({bugLink})'
+					"text": f'##### 你有一个新BUG：{content.get("title")} \n {to_person} \n  - bug来源: {content.get("lastmodify")} \n  - bug 处理人: {content.get("current_owner")} \n  - [bug链接: {bugLink[0:28]}...]({bugLink})'
 				},
 				"at": {
 					"atMobiles": emailList,

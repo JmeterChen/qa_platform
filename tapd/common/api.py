@@ -85,11 +85,23 @@ def get_user_email_by_name(pro_id, OwnerList) -> list:
 if __name__ == '__main__':
 	project_id = 60765812
 	work_id = 1160765812001017396
-	# print(get_user_email_by_name(project_id, "文建"))
-	data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
-	print(data)
+	# # print(get_user_email_by_name(project_id, "文建"))
+	# data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
+	# print(data)
 	# get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
 	# current_owner = get_usersList(data.get("current_owner"))
 	# print(current_owner)
 	# email = get_user_email_by_name(project_id, current_owner)
 	# print(email)
+	print(get_users_by_proId(project_id, "email", "user"))
+	
+	# project_id = 40618851
+	# work_id = 1140618851001017847
+	# data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
+	# print(data)
+	# userStr = data.get("current_owner")
+	# userList = get_usersList(userStr)
+	# print(userList)
+	# emailList = get_user_email_by_name(project_id, userList)
+	# print(emailList)
+	# print(get_users_by_proId(project_id))

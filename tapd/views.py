@@ -10,6 +10,8 @@ from datetime import datetime
 
 # Create your views here.
 
+url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
+
 
 def get_tapd_data(request):
 	data_dict = json.loads(request.body)
@@ -38,14 +40,13 @@ def get_tapd_data(request):
 
 
 def token_add(request):
-	url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
 	
 	data_dict = json.loads(request.body)
 	projectName = data_dict.get("projectName")
 	# print(projectName)
 	projectId = data_dict.get("projectId")
 	# 将钉钉的token转换成智敏服务链接
-	robotToken = url_NF + data_dict.get("robotToken").split('?')[-1]
+	robotToken = url_NF + data_dict.get("robotToken").split('robot/send?')[-1]
 	userName = data_dict.get("userName")
 	
 	if projectName and projectId and robotToken and userName:
@@ -97,7 +98,9 @@ def updateToken(request):
 	data_dict = json.loads(request.body)
 	projectName = data_dict.get('projectName')
 	projectId = data_dict.get("projectId")
-	robotToken = data_dict.get("robotToken")
+	# robotToken = data_dict.get("robotToken")
+	# 将钉钉的token转换成智敏服务链接
+	robotToken = url_NF + data_dict.get("robotToken").split('robot/send?')[-1]
 	try:
 		ProjectToken.objects.filter(projectId=projectId).update(projectName=projectName, robotToken=robotToken, sys_time=datetime.now())
 		res = {"code": 200, 'msg': "数据更新成功", "data": data_dict}
