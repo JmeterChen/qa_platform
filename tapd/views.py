@@ -15,25 +15,25 @@ def get_tapd_data(request):
 	data_dict = json.loads(request.body)
 	# 从请求中获取请求参数
 	event = data_dict.get("event")
-	event_from = data_dict.get("event_from")
-	project_id = data_dict.get("workspace_id")
-	work_id = data_dict.get("id")
-	secret = data_dict.get("secret")
-	created_time = data_dict.get("created")
-	
-	# 获取新建的工作对象详情
-	data = get_work_detial_by_id(project_id, work_id).get("data", {}).get("Bug", {})
-	currentOwner = data.get("current_owner")  # 当前处理人 可能是多个；
-	
-	OwnerList = get_usersList(currentOwner)
-	emailList = get_user_email_by_name(project_id, OwnerList)  # 拿到邮箱
-	
-	# 调用
-	code = push_ding(emailList, content=data, project_id=project_id, work_id=work_id)
-	if code == 200:
-		res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
+	if event == 'bug::create':
+		projectId = data_dict.get("workspace_id")
+		workId = data_dict.get("id")
+		
+		# 获取新建的工作对象详情
+		data = get_work_detial_by_id(projectId, workId).get("data", {}).get("Bug", {})
+		currentOwner = data.get("current_owner")  # 当前处理人 可能是多个；
+		
+		OwnerList = get_usersList(currentOwner)
+		emailList = get_user_email_by_name(projectId, OwnerList)  # 拿到邮箱
+		
+		# 调用
+		code = push_ding(emailList, content=data, project_id=projectId, work_id=workId)
+		if code == 200:
+			res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
+		else:
+			res = {"code": code, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
 	else:
-		res = {"code": code, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
+		res = {"code": 201, "success": "suspend", "msg": "创建BUG以外的事件不做处理！"}
 	return JsonResponse(res)
 
 
