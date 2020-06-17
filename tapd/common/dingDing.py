@@ -19,45 +19,47 @@ def push_ding(emailList, content=None, project_id=None, work_id=None, **kwargs):
 	:param work_id:         对象ID，这里暂时为bugID
 	:return:
 	"""
-	# if email:
-	# 	robot_body = {
-	# 		"msgtype": "text",
-	# 		"text": {
-	# 			"content": content
-	# 		},
-	# 		"at": {
-	# 			"atMobiles": email,
-	# 			"isAtAll": False
-	# 		}
-	# 		# "touser": mobile
-	# 	}
-	#
-	# 	r = requests.post(url, json=robot_body)
-	# 	if r.status_code == 200:
-	# 		return r.status_code
 	
 	bugLink = f"https://www.tapd.cn/{project_id}/bugtrace/bugs/view?bug_id={work_id}"
 	to_person = '@' + ' @'.join(emailList)
+	
 	if emailList:
 		robot_body = {
-				"msgtype": "markdown",
-				"markdown": {
-					"title": "测试BUG待处理",
-					"text": f'##### 你有一个新BUG：{content.get("title")} \n {to_person} \n  - bug来源: {content.get("lastmodify")} \n  - bug 处理人: {content.get("current_owner")} \n  - [bug链接: {bugLink[0:28]}...]({bugLink})'
-				},
-				"at": {
-					"atMobiles": emailList,
-					"isAtAll": False
-				}
-				# "touser": mobile
+			"msgtype": "text",
+			"text": {
+				"content": f'你有一个新BUG：{content.get("title")} \n {to_person} \n Bug来源: {content.get("lastmodify")} \n bug 处理人: {content.get("current_owner")} \n bug链接: {bugLink}'
+			},
+			"at": {
+				"atMobiles": emailList,
+				"isAtAll": False
 			}
-		
-		url = ProjectToken.objects.filter(projectId=project_id).first().robotToken
-		r = requests.post(url, json=robot_body)
+			# "touser": mobile
+		}
+		robotUrl = ProjectToken.objects.filter(projectId=project_id).first().robotToken
+		r = requests.post(robotUrl, json=robot_body)
 		if r.status_code == 200:
 			return r.status_code
-		else:
-			return r.status_code
+	
+	# if emailList:
+	# 	robot_body = {
+	# 			"msgtype": "markdown",
+	# 			"markdown": {
+	# 				"title": "测试BUG待处理",
+	# 				"text": f'##### 你有一个新BUG：{content.get("title")} \n {to_person} \n  - bug来源: {content.get("lastmodify")} \n  - bug 处理人: {content.get("current_owner")} \n  - [bug链接: {bugLink[0:28]}...]({bugLink})'
+	# 			},
+	# 			"at": {
+	# 				"atMobiles": emailList,
+	# 				"isAtAll": False
+	# 			}
+	# 			# "touser": mobile
+	# 		}
+	#
+	# 	url = ProjectToken.objects.filter(projectId=project_id).first().robotToken
+	# 	r = requests.post(url, json=robot_body)
+	# 	if r.status_code == 200:
+	# 		return r.status_code
+	# 	else:
+	# 		return r.status_code
 
 if __name__ == '__main__':
 	project_id = 60765812
