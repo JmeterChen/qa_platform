@@ -27,7 +27,7 @@ def push_ding(emailList, content=None, project_id=None, work_id=None, **kwargs):
 		robot_body = {
 			"msgtype": "text",
 			"text": {
-				"content": f'你有一个新BUG：{content.get("title")} \n {to_person} \n Bug来源: {content.get("lastmodify")} \n bug 处理人: {content.get("current_owner")} \n bug链接: {bugLink}'
+				"content": f'你有一个新BUG：{content.get("title")} \n {to_person} \n BUG来源: {content.get("lastmodify")} \n BUG处理人: {content.get("current_owner")} \n BUG链接: {bugLink}'
 			},
 			"at": {
 				"atMobiles": emailList,
