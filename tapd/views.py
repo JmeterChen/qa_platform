@@ -7,14 +7,19 @@ from django.db.models import Q
 
 from tapd.common.dingDing import *
 from datetime import datetime
+from tapd.common.readLogger import ReadLogger
 
 # Create your views here.
 
 url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
 
+logger = ReadLogger().get_logger()
+
 
 def get_tapd_data(request):
 	data_dict = json.loads(request.body)
+	logger.debug(f"请求操作            :腾讯发起操作")
+	logger.debug(f"请求参数            :{data_dict}")
 	# 从请求中获取请求参数
 	event = data_dict.get("event")
 	if event == 'bug::create':
@@ -28,20 +33,25 @@ def get_tapd_data(request):
 		OwnerList = get_usersList(currentOwner)
 		emailList = get_user_email_by_name(projectId, OwnerList)  # 拿到邮箱
 		
+		logger.debug(f"发送对象            :{emailList}")
 		# 调用
 		code = push_ding(emailList, content=data, project_id=projectId, work_id=workId)
 		if code == 200:
 			res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
+			logger.debug(f"发送状态         :✅")
 		else:
 			res = {"code": code, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
+			logger.debug(f"发送状态         :❌")
 	else:
 		res = {"code": 201, "success": "suspend", "msg": "创建BUG以外的事件不做处理！"}
+		logger.debug(f"发送状态         :push终止！")
 	return JsonResponse(res)
 
 
 def token_add(request):
-	
 	data_dict = json.loads(request.body)
+	logger.debug(f"请求操作            :添加")
+	logger.debug(f"请求参数            :{data_dict}")
 	projectName = data_dict.get("projectName")
 	# print(projectName)
 	projectId = data_dict.get("projectId")
@@ -56,9 +66,11 @@ def token_add(request):
 			try:
 				ProjectToken.objects.create(**{"projectName": projectName, "projectId": projectId, "robotToken": robotToken,
 				                            "userName": userName})
+				logger.debug(f"数据写入状态         :✅")
 				res = {'code': 200, 'msg': '新增项目配置成功！', 'data': data_dict}
 			except Exception as e:
 				res = {"code": 99999, 'msg': f"添加数据出现异常：{e}"}
+				logger.debug(f"数据写入状态         :❌")
 		else:
 			res = {'code': 10001, 'msg': '项目ID已经存在，请前往TAPD确认正确的项目参数！'}
 	else:
@@ -73,17 +85,23 @@ def tokens(request):
 
 def del_token(request):
 	del_data = json.loads(request.body)
+	logger.debug(f"请求操作            :删除")
+	logger.debug(f"请求参数            :{del_data}")
 	projectId = del_data.get("projectId")
 	try:
 		ProjectToken.objects.filter(projectId=projectId).delete()
 		res = {"code": 200, 'msg': "删除数据成功"}
+		logger.debug(f"数据删除状态         :✅")
 	except Exception as e:
 		res = {"code": 99999, 'msg': f"删除数据出现异常：{e}"}
+		logger.debug(f"数据删除状态         :❌")
 	return JsonResponse(res)
 	
 
 def search(request):
+	logger.debug(f"请求操作            :搜索")
 	keyword = request.GET.get("keyword")
+	logger.debug(f"请求参数            :{keyword}")
 	if keyword:
 		p = ProjectToken.objects.filter(Q(projectName__icontains=keyword) | Q(userName__icontains=keyword) |
 		                                Q(projectId__icontains=keyword)).values(
@@ -96,6 +114,8 @@ def search(request):
 
 def updateToken(request):
 	data_dict = json.loads(request.body)
+	logger.debug(f"请求操作            :更新")
+	logger.debug(f"请求参数            :{data_dict}")
 	projectName = data_dict.get('projectName')
 	projectId = data_dict.get("projectId")
 	# robotToken = data_dict.get("robotToken")
@@ -104,6 +124,8 @@ def updateToken(request):
 	try:
 		ProjectToken.objects.filter(projectId=projectId).update(projectName=projectName, robotToken=robotToken, sys_time=datetime.now())
 		res = {"code": 200, 'msg': "数据更新成功", "data": data_dict}
+		logger.debug(f"数据写入状态         :✅")
 	except Exception as e:
 		res = {"code": 99999, "msg": f"数据更新出现异常：{e}"}
+		logger.debug(f"数据写入状态         :❌")
 	return JsonResponse(res)

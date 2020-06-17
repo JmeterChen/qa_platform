@@ -27,7 +27,7 @@ def push_ding(emailList, content=None, project_id=None, work_id=None, **kwargs):
 		robot_body = {
 			"msgtype": "text",
 			"text": {
-				"content": f'你有一个新BUG：{content.get("title")} \n {to_person} \n BUG来源: {content.get("lastmodify")} \n BUG处理人: {content.get("current_owner")} \n BUG链接: {bugLink}'
+				"content": f'有一个新BUG正在撩你，请速速响应：{content.get("title")}  BUG链接: {bugLink} \n {to_person}'
 			},
 			"at": {
 				"atMobiles": emailList,
@@ -46,6 +46,28 @@ def push_ding(emailList, content=None, project_id=None, work_id=None, **kwargs):
 	# 			"markdown": {
 	# 				"title": "测试BUG待处理",
 	# 				"text": f'##### 你有一个新BUG：{content.get("title")} \n {to_person} \n  - bug来源: {content.get("lastmodify")} \n  - bug 处理人: {content.get("current_owner")} \n  - [bug链接: {bugLink[0:28]}...]({bugLink})'
+	# 			},
+	# 			"at": {
+	# 				"atMobiles": emailList,
+	# 				"isAtAll": False
+	# 			}
+	# 			# "touser": mobile
+	# 		}
+	#
+	# 	url = ProjectToken.objects.filter(projectId=project_id).first().robotToken
+	# 	r = requests.post(url, json=robot_body)
+	# 	if r.status_code == 200:
+	# 		return r.status_code
+	# 	else:
+	# 		return r.status_code
+
+	# if emailList:
+	# 	u_str = ' '.join(list(map(lambda a: f'<font color=#{hex(hash(a))[4:6] + hex(hash(a))[9:11] + hex(hash(a))[14:16]} size=3 face=\"黑体\">@{a}</font>', emailList)))
+	# 	robot_body = {
+	# 			"msgtype": "markdown",
+	# 			"markdown": {
+	# 				"title": "测试BUG待处理",
+	# 				"text": f'##### 你有一个新BUG：{u_str} \n [{content.get("title")}]({bugLink})'
 	# 			},
 	# 			"at": {
 	# 				"atMobiles": emailList,

@@ -84,10 +84,10 @@ DATABASES = {
 	'default': {
 		# 配置使用mysql
 		'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-		'HOST': "10.0.6.56",  # 数据库ip
+		'HOST': "10.50.255.161",  # 数据库ip
 		'PORT': 3306,  # 数据库端口
 		'USER': "root",
-		'PASSWORD': "Fdd*123",
+		'PASSWORD': "261090dong",
 		'NAME': "qa_platform",  # 数据库名, 事先要创建
 		'TEST': {
 			'CHARSET': 'utf8',
