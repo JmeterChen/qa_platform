@@ -11,20 +11,20 @@ import time
 
 sep = os.sep
 
-containerRoot = os.getenv("LOGS_DIR")
-
 
 class ReadLogger:
 	def __init__(self):
 		""" 读取日志配置 """
+		containerRoot = os.getenv("LOGS_DIR")
+		print(containerRoot)
+		p_root = os.path.abspath(os.path.join(__file__, f'..{sep}..{sep}..'))  # 项目根路径
 		# root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根路径
 		if not containerRoot:
-			root_dir = os.path.abspath(os.path.join(__file__, f'..{sep}..{sep}..'))  # 项目根路径
+			root_dir = p_root
 		else:
 			root_dir = containerRoot
-		# print(root_dir)
 		logConfFileName = 'logs.conf'  # 指定日志配置文件名称
-		logConfFilePath = root_dir + sep + 'conf' + sep + logConfFileName  # 指定日志配置文件绝对路径
+		logConfFilePath = p_root + sep + 'conf' + sep + logConfFileName  # 指定日志配置文件绝对路径
 		now_day = time.strftime("%Y_%m_%d")
 		runLogPath = f'{root_dir}{sep}output{sep}logs{sep}logs_{now_day}'
 		
