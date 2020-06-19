@@ -13,10 +13,12 @@ from tapd.common.readLogger import ReadLogger
 
 url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
 
-logger = ReadLogger().get_logger()
+logger = None
 
 
 def get_tapd_data(request):
+	global logger
+	logger = ReadLogger().get_logger()
 	data_dict = json.loads(request.body)
 	logger.debug(f"请求操作            :腾讯发起操作")
 	logger.debug(f"请求参数            :{data_dict}")
@@ -38,13 +40,13 @@ def get_tapd_data(request):
 		code = push_ding(emailList, content=data, project_id=projectId, work_id=workId)
 		if code == 200:
 			res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
-			logger.debug(f"发送状态         :✅")
+			logger.debug(f"发送状态            :✅")
 		else:
 			res = {"code": code, "success": False, "msg": "钉钉消息发送失败！", "data": data_dict}
-			logger.debug(f"发送状态         :❌")
+			logger.debug(f"发送状态            :❌")
 	else:
 		res = {"code": 201, "success": "suspend", "msg": "创建BUG以外的事件不做处理！"}
-		logger.debug(f"发送状态         :push终止！")
+		logger.debug(f"发送状态            :push终止！")
 	return JsonResponse(res)
 
 
