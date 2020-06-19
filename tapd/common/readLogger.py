@@ -11,13 +11,18 @@ import time
 
 sep = os.sep
 
+containerRoot = os.getenv("LOGS_DIR")
+
 
 class ReadLogger:
 	def __init__(self):
 		""" 读取日志配置 """
 		# root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根路径
-		root_dir = os.path.abspath(os.path.join(__file__, f'..{sep}..{sep}..'))  # 项目根路径
-		print(root_dir)
+		if not containerRoot:
+			root_dir = os.path.abspath(os.path.join(__file__, f'..{sep}..{sep}..'))  # 项目根路径
+		else:
+			root_dir = containerRoot
+		# print(root_dir)
 		logConfFileName = 'logs.conf'  # 指定日志配置文件名称
 		logConfFilePath = root_dir + sep + 'conf' + sep + logConfFileName  # 指定日志配置文件绝对路径
 		now_day = time.strftime("%Y_%m_%d")
