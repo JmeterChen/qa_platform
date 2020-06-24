@@ -12,7 +12,7 @@ from jsonpath import jsonpath
 
 api_user = 'vP3^rsNM'
 api_password = 'F23DD8F2-0EAE-F59B-09BC-78CECCDFC214'
-user_password = (api_user + ':' +api_password)
+user_password = (api_user + ':' + api_password)
 user_BASE64 = base64.b64encode(user_password.encode()).decode()
 headers = {"Authorization": "Basic " + user_BASE64}
 

@@ -83,6 +83,7 @@ def push_ding(emailList, content=None, project_id=None, work_id=None, **kwargs):
 	# 	else:
 	# 		return r.status_code
 
+
 if __name__ == '__main__':
 	project_id = 60765812
 	url = ProjectToken.objects.filter(projectId=project_id).first().robotToken
