@@ -7,7 +7,7 @@
 import os
 import logging
 import logging.config
-import time
+import time, platform
 
 sep = os.sep
 
@@ -16,17 +16,17 @@ class ReadLogger:
 	def __init__(self):
 		""" 读取日志配置 """
 		containerRoot = os.getenv("LOGS_DIR")
-		print(containerRoot)
-		p_root = os.path.abspath(os.path.join(__file__, f'..{sep}..{sep}..'))  # 项目根路径
-		# root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根路径
-		if not containerRoot:
-			root_dir = p_root
-		else:
-			root_dir = containerRoot
+		projectRoot = os.path.abspath(os.path.join(__file__, f'..{sep}..{sep}..'))  # 项目根路径
+		# projectRoot = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根路径
+		_platform = platform.platform()
+		if _platform.startswith("Windows") or _platform.startswith('Darwin') or not containerRoot:
+			rootDir = projectRoot
+		elif containerRoot:
+			rootDir = containerRoot
 		logConfFileName = 'logs.conf'  # 指定日志配置文件名称
-		logConfFilePath = p_root + sep + 'conf' + sep + logConfFileName  # 指定日志配置文件绝对路径
-		now_day = time.strftime("%Y_%m_%d")
-		runLogPath = f'{root_dir}{sep}output{sep}logs{sep}logs_{now_day}'
+		logConfFilePath = projectRoot + sep + 'conf' + sep + logConfFileName  # 指定日志配置文件绝对路径
+		nowDay = time.strftime("%Y_%m_%d")
+		runLogPath = f'{rootDir}{sep}output{sep}logs{sep}logs_{nowDay}'
 		
 		while not os.path.exists(runLogPath):
 			try:

@@ -16,9 +16,14 @@ url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
 logger = None
 
 
-def get_tapd_data(request):
+def init_logger():
 	global logger
 	logger = ReadLogger().get_logger()
+
+init_logger()
+
+
+def get_tapd_data(request):
 	data_dict = json.loads(request.body)
 	logger.debug(f"请求操作            :腾讯发起操作")
 	logger.debug(f"请求参数            :{data_dict}")
@@ -37,7 +42,7 @@ def get_tapd_data(request):
 		
 		logger.debug(f"发送对象            :{emailList}")
 		# 调用
-		code = push_ding(emailList, content=data, project_id=projectId, work_id=workId)
+		code = push_ding(emailList, content=data, projectId=projectId, workId=workId)
 		if code == 200:
 			res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
 			logger.debug(f"发送状态            :✅")
