@@ -2,3 +2,4 @@ Django==2.1.4
 PyMySQL==0.9.3
 jsonpath==0.82
 requests==2.22.0
+djangorestframework==3.11.0
