@@ -14,3 +14,6 @@ class ProjectToken(models.Model):
 	
 	class Meta:
 		db_table = 't_token'
+		
+	def __str__(self):
+		return self.projectName
