@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import render
 from tapd.common.api import *
 from tapd.models import *
