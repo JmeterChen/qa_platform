@@ -25,6 +25,7 @@ urlpatterns = [
 	path('tapd_data/', views.get_tapd_data),
 	path('add_pro_token/', views.token_add),
 	path('projects/', views.tokens),
+	path('projects_list/', views.tokens_api),
 	path('del_token/', views.del_token),
 	path('search', views.search),
 	path('update_projects/', views.updateToken)

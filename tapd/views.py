@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import render
 from tapd.common.api import *
 from tapd.models import *
@@ -16,9 +16,14 @@ url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
 logger = None
 
 
-def get_tapd_data(request):
+def init_logger():
 	global logger
 	logger = ReadLogger().get_logger()
+
+
+def get_tapd_data(request):
+	if not logger:
+		init_logger()
 	data_dict = json.loads(request.body)
 	logger.debug(f"请求操作            :腾讯发起操作")
 	logger.debug(f"请求参数            :{data_dict}")
@@ -29,7 +34,7 @@ def get_tapd_data(request):
 		workId = data_dict.get("id")
 		
 		# 获取新建的工作对象详情
-		data = get_work_detial_by_id(projectId, workId).get("data", {}).get("Bug", {})
+		data = get_work_detail_by_id(projectId, workId).get("data", {}).get("Bug", {})
 		currentOwner = data.get("current_owner")  # 当前处理人 可能是多个；
 		
 		OwnerList = get_usersList(currentOwner)
@@ -37,7 +42,7 @@ def get_tapd_data(request):
 		
 		logger.debug(f"发送对象            :{emailList}")
 		# 调用
-		code = push_ding(emailList, content=data, project_id=projectId, work_id=workId)
+		code = push_ding(emailList, content=data, projectId=projectId, workId=workId)
 		if code == 200:
 			res = {"code": code, "success": True, "msg": "钉钉消息发送成功！", "data": data_dict}
 			logger.debug(f"发送状态            :✅")
@@ -81,8 +86,17 @@ def token_add(request):
 
 
 def tokens(request):
+	if not logger:
+		init_logger()
 	users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "userName")
 	return render(request, 'tapd/token.html', {"userList": list(users)})
+
+
+def tokens_api(request):
+	if not logger:
+		init_logger()
+	users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "sys_time", "userName")
+	return JsonResponse(list(users), safe=False)
 
 
 def del_token(request):
