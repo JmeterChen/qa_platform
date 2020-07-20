@@ -34,7 +34,7 @@ def get_tapd_data(request):
 		workId = data_dict.get("id")
 		
 		# 获取新建的工作对象详情
-		data = get_work_detial_by_id(projectId, workId).get("data", {}).get("Bug", {})
+		data = get_work_detail_by_id(projectId, workId).get("data", {}).get("Bug", {})
 		currentOwner = data.get("current_owner")  # 当前处理人 可能是多个；
 		
 		OwnerList = get_usersList(currentOwner)

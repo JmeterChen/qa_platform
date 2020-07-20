@@ -17,7 +17,7 @@ userBASE64 = base64.b64encode(userPassword.encode()).decode()
 headers = {"Authorization": "Basic " + userBASE64}
 
 
-def get_work_detial_by_id(proId, objId):
+def get_work_detail_by_id(proId, objId):
 	"""
 	:param proId:      项目ID
 	:param objId:      工作ID，缺陷ID，需求ID或任务ID等；
@@ -80,24 +80,35 @@ def get_user_email_by_name(proId, OwnerList) -> list:
 				if i["user"] == m:
 					emailList.append(i["email"])
 		return emailList
+	
+	
+def get_iterations_by_id(pro_id) -> dict:
+	"""
+	:param pro_id:      # 项目ID
+	:return:            # 指定项目迭代信息
+	"""
+	url = 'https://api.tapd.cn/iterations'
+	params = {"workspace_id": pro_id}
+	res = requests.get(url=url, params=params, headers=headers)
+	if res.status_code == 200:
+		return res.json()
 
 
 if __name__ == '__main__':
 	projectId = 60765812
-	workId = 1160765812001017396
-	# # print(get_user_email_by_name(projectId, "文建"))
-	# data = get_work_detial_by_id(projectId, workId).get("data", {}).get("Bug", {})
+	work_id = 1160765812001017396
+	# # print(get_user_email_by_name(project_id, "文建"))
+	# data = get_work_detail_by_id(project_id, work_id).get("data", {}).get("Bug", {})
 	# print(data)
-	# get_work_detial_by_id(projectId, workId).get("data", {}).get("Bug", {})
-	# currentOwner = get_usersList(data.get("current_owner"))
-	# print(currentOwner)
-	# email = get_user_email_by_name(projectId, current_owner)
-	# print(email)
+	# get_work_detail_by_id(project_id, work_id).get("data", {}).get("Bug", {})
+	# current_owner = get_usersList(data.get("current_owner"))
+	# print(current_owner)
+	# email = get_user_email_by_name(project_id, current_owner)
 	print(get_users_by_proId(projectId, "email", "user"))
 	
-	# projectId = 40618851
-	# workId = 1140618851001017847
-	# data = get_work_detial_by_id(projectId, workId).get("data", {}).get("Bug", {})
+	# project_id = 40618851
+	# work_id = 1140618851001017847
+	# data = get_work_detail_by_id(project_id, work_id).get("data", {}).get("Bug", {})
 	# print(data)
 	# userStr = data.get("current_owner")
 	# userList = get_usersList(userStr)
