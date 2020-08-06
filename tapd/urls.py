@@ -27,6 +27,6 @@ urlpatterns = [
 	path('projects/', views.tokens),
 	path('projects_list/', views.tokens_api),
 	path('del_token/', views.del_token),
-	path('search', views.search),
+	path('search/', views.search),
 	path('update_projects/', views.updateToken)
 ]
