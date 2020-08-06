@@ -2,4 +2,3 @@
 venv/
 *.pyc
 output/logs/
-mysite/
