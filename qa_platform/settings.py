@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 	'index',
 	'tapd',
 	'rest_framework',
+	'mypro'
 ]
 
 REST_FRAMEWORK = {

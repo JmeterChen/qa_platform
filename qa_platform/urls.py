@@ -5,5 +5,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('index/', include('index.urls')),
     path('tapd/', include('tapd.urls')),
-    re_path('^', include("mysite.urls")),
+    re_path('^', include("mypro.urls")),
 ]
