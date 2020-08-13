@@ -123,7 +123,7 @@ WSGI_APPLICATION = 'qa_platform.wsgi.application'
 
 
 if ENVIRONMENT == 'prod':
-	DATABASES = MYSQL.get(ENVIRONMENT)
+	DATABASES = MYSQL.get("production")
 	DEBUG = False
 elif ENVIRONMENT:
 	DATABASES = MYSQL.get(ENVIRONMENT)
