@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from conf.config import MYSQL
+
+ENVIRONMENT = os.getenv("FDD_ENV")
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '!t(=_!!mgfb$n%jaxo7n2x01@kia4c6crul57fdfmxvpeo+l#i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -42,13 +45,13 @@ INSTALLED_APPS = [
 	'mypro'
 ]
 
-REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
-}
+# REST_FRAMEWORK = {
+#     # Use Django's standard `django.contrib.auth` permissions,
+#     # or allow read-only access for unauthenticated users.
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+#     ]
+# }
 
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
@@ -61,9 +64,31 @@ MIDDLEWARE = [
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'VIEW',
+)
+
+CORS_ALLOW_HEADERS = (
+    'XMLHttpRequest',
+    'X_FILENAME',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'Pragma',
+)
 
 ROOT_URLCONF = 'qa_platform.urls'
 
@@ -96,37 +121,14 @@ WSGI_APPLICATION = 'qa_platform.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-	'default': {
-		# 配置使用mysql
-		'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-		'HOST': "10.50.255.161",  # 数据库ip
-		'PORT': 3306,  # 数据库端口
-		'USER': "root",
-		'PASSWORD': "261090dong",
-		'NAME': "qa_platform",  # 数据库名, 事先要创建
-		'TEST': {
-			'CHARSET': 'utf8',
-			'COLLATION': 'utf8_general_ci'
-		}
-	}
-}
 
-# DATABASES = {
-# 	'default': {
-# 		# 配置使用mysql
-# 		'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-# 		'HOST': "localhost",  # 数据库ip
-# 		'PORT': 3306,  # 数据库端口
-# 		'USER': "root",
-# 		'PASSWORD': "19940415",
-# 		'NAME': "qa_platform",  # 数据库名, 事先要创建
-# 		'TEST': {
-# 			'CHARSET': 'utf8',
-# 			'COLLATION': 'utf8_general_ci'
-# 		}
-# 	}
-# }
+if ENVIRONMENT == 'prod':
+	DATABASES = MYSQL.get(ENVIRONMENT)
+	DEBUG = False
+elif ENVIRONMENT:
+	DATABASES = MYSQL.get(ENVIRONMENT)
+else:
+	DATABASES = MYSQL.get("test")
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators

@@ -11,6 +11,8 @@ from mypro.models import *
 import time, random
 from datetime import datetime
 
+from tapd.models import *
+
 # Create your views here.
 
 
@@ -58,10 +60,32 @@ def user_list(request):
 # 	def delete(self, requests, *args, **kwargs):
 # 		return HttpResponse("DELETE")
 
-@method_decorator(csrf_exempt, name='dispatch')
+# @method_decorator(csrf_exempt, name='dispatch')
+# class StudentView(View):
+# 	def get(self, requests, *args, **kwargs):
+# 		return HttpResponse("GET")
+#
+# 	def post(self, requests, *args, **kwargs):
+# 		return HttpResponse("POST")
+#
+# 	def put(self, requests, *args, **kwargs):
+# 		return HttpResponse("PUT")
+#
+# 	def delete(self, requests, *args, **kwargs):
+# 		return HttpResponse("DELETE")
+
+
 class StudentView(View):
+	
+	def dispatch(self, request, *args, **kwargs):
+		func = getattr(self, request.method.lower())
+		print(dir(self))
+		return func(request, *args, **kwargs)
+	
 	def get(self, requests, *args, **kwargs):
-		return HttpResponse("GET")
+		# return HttpResponse("GET")
+		users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "sys_time", "userName")
+		return JsonResponse(list(users), safe=False)
 	
 	def post(self, requests, *args, **kwargs):
 		return HttpResponse("POST")
@@ -71,6 +95,9 @@ class StudentView(View):
 	
 	def delete(self, requests, *args, **kwargs):
 		return HttpResponse("DELETE")
+	
+	def patch(self, requests, *args, **kwargs):
+		return HttpResponse("PATCH")
 
 
 # 普通格式编写 views 函数
@@ -140,7 +167,7 @@ class DogView(APIView):
 			"code": 1000,
 			"msg": "xxxx"
 		}
-		return HttpResponse(json.dumps(res), status=201)
+		return JsonResponse(res, status=201)
 	
 	def post(self, requests, *args, **kwargs):
 		return HttpResponse("创建dog")
