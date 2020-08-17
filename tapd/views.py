@@ -9,10 +9,13 @@ from tapd.common.dingDing import *
 from datetime import datetime
 # from tapd.common.readLogger import ReadLogger
 from tapd import logger
+from django.core.paginator import Paginator
 
 # Create your views here.
 
 url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
+default_pageNum = '1'
+default_pageSize = '10'
 
 
 def get_tapd_data(request):

@@ -21,7 +21,7 @@ class App(models.Model):
 	product_id = models.CharField(primary_key=True, null=False, max_length=20)
 	product_name = models.CharField('产品线名称', null=False, unique=True, max_length=20, default='')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -34,7 +34,7 @@ class Project(models.Model):
 	product_id = models.CharField('所属产品线', null=False, max_length=20)
 	test_user_id = models.CharField(null=False, max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -49,13 +49,10 @@ class Iterable(models.Model):
 	cases_num = models.IntegerField('用例条数', default=0, null=False)
 	bugs_num = models.IntegerField('用例条数', default=0, null=False)
 	test_user_id = models.CharField(null=False, max_length=20)
-	count_time = models.DateTimeField('统计时间', auto_now=True)
-	week_start = models.DateTimeField('周起始时间', null=True, default='2020-07-08')
-	week_end = models.DateTimeField('周截止时间', null=True,  default='2020-07-08')
-	month_start = models.DateTimeField('月起始时间', null=True,  default='2020-07-08')
-	month_end = models.DateTimeField('月截止时间', null=True,  default='2020-07-08')
+	week = models.IntegerField(null=False, default=1)
+	month = models.IntegerField(null=False, default=1)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -70,7 +67,7 @@ class User(models.Model):
 	product_id = models.CharField('所属产品线', null=False, max_length=20)
 	project_id = models.CharField('所属项目组', null=False, max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -88,7 +85,7 @@ class Devices(models.Model):
 	location = models.IntegerField(choices=((0, '深圳'), (1, '上海'), (2, '其他')), default=0)
 	remark = models.CharField(max_length=100, unique=True)  # unique 这里需要改下
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -107,7 +104,7 @@ class SonarReport(models.Model):
 	month_start = models.DateTimeField('月起始时间', null=True,  default='2020-07-08')
 	month_end = models.DateTimeField('月截止时间', null=True,  default='2020-07-08')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 
 	class Meta:
 		db_table = 'qa_sonar_result'
@@ -119,13 +116,10 @@ class OnlineBug(models.Model):
 	back_bugs = models.IntegerField(default=0)
 	online_bugs = models.IntegerField(default=0)
 	online_accidents = models.IntegerField(default=0)
-	count_time = models.DateTimeField('统计时间', auto_now=True)
-	week_start = models.DateTimeField('周起始时间', null=True, default='2020-07-08')
-	week_end = models.DateTimeField('周截止时间', null=True,  default='2020-07-08')
-	month_start = models.DateTimeField('月起始时间', null=True,  default='2020-07-08')
-	month_end = models.DateTimeField('月截止时间', null=True,  default='2020-07-08')
+	week = models.IntegerField(null=False, default=1)
+	month = models.IntegerField(null=False, default=1)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -141,7 +135,7 @@ class TestCase(models.Model):
 	cases_num = models.IntegerField('用例条数', default=0)
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -156,7 +150,7 @@ class TestReport(models.Model):
 	test_report_url = models.URLField(null=False,  max_length=200)
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
-	sys_time = models.DateTimeField('保存时间', auto_now=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -164,14 +158,16 @@ class TestReport(models.Model):
 
 
 class ProblemPlus(models.Model):
-	product_id = models.CharField(null=False, max_length=20)
-	project_id = models.CharField(null=False, max_length=20)
+	# product_id = models.CharField(null=False, max_length=20)
+	# project_id = models.CharField(null=False, max_length=20)
 	description = models.CharField(null=False, max_length=100)
 	resolution = models.CharField(null=False, max_length=100)
 	avoid = models.CharField(null=False, max_length=100)
 	create_user = models.CharField(max_length=20)
 	keyword = models.CharField(null=False, max_length=50)
 	case_info_url = models.URLField(null=False, max_length=200)
+	create_time = models.DateTimeField('创建时间', auto_now_add=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 
 	class Meta:
 		db_table = 'qa_problem_plus'
@@ -190,6 +186,8 @@ class Services(models.Model):
 	project_id = models.CharField(null=False, max_length=20)
 	coder = models.CharField(null=False, max_length=30)
 	test_user = models.CharField(max_length=20)
+	create_time = models.DateTimeField('创建时间', auto_now_add=True)
+	update_time = models.DateTimeField('编辑时间', auto_now=True)
 
 	class Meta:
 		db_table = 'qa_services'
