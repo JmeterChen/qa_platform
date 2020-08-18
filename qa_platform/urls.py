@@ -6,4 +6,5 @@ urlpatterns = [
     path('index/', include('index.urls')),
     path('tapd/', include('tapd.urls')),
     re_path('^api/v1/', include("mypro.urls")),
+    re_path('^api/v1/', include("testcase.urls")),
 ]
