@@ -42,7 +42,6 @@ class Project(models.Model):
 
 
 class Iterable(models.Model):
-	id = models.IntegerField(primary_key=True)
 	project_id = models.CharField(null=False, max_length=20)
 	product_id = models.CharField('所属产品线', null=False, max_length=20)
 	publish_num = models.IntegerField('发版个数', default=0, null=False)

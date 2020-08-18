@@ -5,6 +5,7 @@ from django.test import TestCase
 
 import os
 import django
+import time
 
 
 os.environ.setdefault('DJANGO_SETTING_MODULE', 'MyDjango.settings')
@@ -30,7 +31,7 @@ for i in range(100):
 	
 	num = random.randint(1, 99)
 	
-	product_id = f'{i}'
+	product_id = str(round(time.time()))
 	product_name = f'ABCD{i}'
 	project_name = f'XYZ{i}'
 	back_bugs = random.randint(1, 30)
@@ -106,8 +107,7 @@ for i in range(100):
 		project_id=project_id,
 		back_bugs=back_bugs,
 		online_bugs=online_bugs,
-		online_accidents=online_accidents,
-		count_time=count_time
+		online_accidents=online_accidents
 	)
 	
 	OnlineBug_list.append(obj6)
@@ -174,8 +174,8 @@ if __name__ == '__main__':
 	ProblemPlus.objects.bulk_create(ProblemPlus_list)
 	Services.objects.bulk_create(Services_list)
 	Project.objects.bulk_create(Project_list)
-
-
+	# obj = Services.objects.filter(product_id=222).filter(project_id=1).values("service_name")
+	# print(list(obj))
 
 
 
