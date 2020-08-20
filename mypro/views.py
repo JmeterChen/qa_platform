@@ -195,21 +195,22 @@ class ProductView(View):
 		db_data = App.objects.all().filter(is_delete=0).order_by("create_time")
 		data_len = db_data.__len__()
 		req = request.GET
+		pageSize, pageNum = req.get("pageSize", default_pageSize), req.get("pageNum", default_pageNum)
 		if not len(req):
 			data = db_data
-			result_data = serializers.serialize("json", data, ensure_ascii=False, fields={"product_id", "product_name"})
-			res = {"code": 10000, "success": True, "data": result_data, "total": data_len}
+			result_data = serializers.serialize("json", data, ensure_ascii=False, fields={"product_name"})
+			result_data = json.loads(result_data)
+			res = {"code": 10000, "success": True, "pageNum": int(pageNum), "pageSize": int(pageSize), "data": result_data, "total": data_len}
 			# res = serializers.serialize("json", data, fields={"create_time", "sys_time"})
 			
 		else:
-			pageSize, pageNum = req.get("pageSize", default_pageSize), req.get("pageNum", default_pageNum)
 			max_page = (data_len // int(pageSize)) + 2
 			if int(pageNum) in range(1, max_page):
 				paginator = Paginator(db_data, pageSize)
 				data = paginator.get_page(pageNum)
-				result_data = serializers.serialize("json", data, ensure_ascii=False, fields={"product_name", "is_delete"})
+				result_data = serializers.serialize("json", data, ensure_ascii=False, fields={"product_name"})
 				result_data = json.loads(result_data)
-				res = {"code": 10000, "success": True, "pageNum": int(pageNum), "pageSize": int(pageSize), "data": result_data}
+				res = {"code": 10000, "success": True, "pageNum": int(pageNum), "pageSize": int(pageSize), "data": result_data, "total": data_len}
 			else:
 				res = {"code": 10009, "success": False, "msg": "查询数据不再查询范围！"}
 		return JsonResponse(res)
