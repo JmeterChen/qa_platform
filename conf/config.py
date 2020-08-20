@@ -65,3 +65,39 @@ MYSQL = {
 		}
 	}
 }
+
+
+db_mysql = {
+    'prod': {
+	    # 配置使用mysql
+	    'host': "10.50.255.161",  # 数据库ip
+	    'port': 3306,  # 数据库端口
+	    'user': "root",
+	    'password': "261090dong",
+	    'database': "newsonar"  # 数据库名, 事先要创建
+	},
+	"staging": {
+		# 配置使用mysql
+		'host': "localhost",  # 数据库ip
+		'port': 3306,  # 数据库端口
+		'user': "root",
+		'password': "19940415",
+		'database': "qa_platform" # 数据库名, 事先要创建
+	},
+	"test": {
+		# 配置使用mysql
+		'host': "10.50.255.161",  # 数据库ip
+		'port': 3306,  # 数据库端口
+		'user': "root",
+		'password': "261090dong",
+		'database': "newsonar"  # 数据库名, 事先要创建
+	},
+	"local": {
+		# 配置使用mysql
+		'host': "localhost",  # 数据库ip
+		'port': 3306,  # 数据库端口
+		'user': "root",
+		'password': "19940415",
+		'database': "qa_platform"  # 数据库名, 事先要创建
+	}
+}

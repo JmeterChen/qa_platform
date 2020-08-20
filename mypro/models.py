@@ -99,6 +99,7 @@ class SonarReport(models.Model):
 	week = models.IntegerField(null=False, default=1)
 	month = models.IntegerField(null=False, default=1)
 	year = models.IntegerField(null=False, default=1970)
+	day = models.IntegerField(null=False, default=1)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
 
@@ -114,6 +115,7 @@ class OnlineBug(models.Model):
 	online_accidents = models.IntegerField(default=0)
 	week = models.IntegerField(null=False, default=1)
 	month = models.IntegerField(null=False, default=1)
+	year = models.IntegerField(null=False, default=1970)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
@@ -176,7 +178,7 @@ class Services(models.Model):
 	                (4, 'Python'),
 	                (5, 'Go'),
 	                (0, 'Others'))
-	service_name = models.CharField(null=False, max_length=20)
+	service_name = models.CharField(null=False, max_length=100)
 	service_type = models.IntegerField('项目类型', choices=type_choices, default=0)
 	product_id = models.CharField(null=False, max_length=20)
 	project_id = models.CharField(null=False, max_length=20)
