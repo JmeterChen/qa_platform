@@ -35,11 +35,7 @@ def get_year_month_week_day_byString(time_str) ->tuple:
 
 
 def execute_sql(sql):
-	env = os.getenv('FDD_ENV')
-	if env:
-		_db = db_mysql[env]
-	else:
-		_db = db_mysql["test"]
+	_db = db_mysql["master"]
 	cur = pymysql.connect(**_db)
 	cur = cur.cursor()
 	cur.execute(sql)

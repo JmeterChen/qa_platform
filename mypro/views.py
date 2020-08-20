@@ -208,6 +208,7 @@ class ProductView(View):
 				paginator = Paginator(db_data, pageSize)
 				data = paginator.get_page(pageNum)
 				result_data = serializers.serialize("json", data, ensure_ascii=False, fields={"product_name", "is_delete"})
+				result_data = json.loads(result_data)
 				res = {"code": 10000, "success": True, "pageNum": int(pageNum), "pageSize": int(pageSize), "data": result_data}
 			else:
 				res = {"code": 10009, "success": False, "msg": "查询数据不再查询范围！"}
@@ -272,8 +273,8 @@ class ProjectView(View):
 		for i in dict_data:
 			i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
 			i["fields"]["test_user_name"] = User.objects.filter(user_id=i["fields"]["test_user_id"]).first().user_name
-		result_data = json.dumps(dict_data, ensure_ascii=False)
-		res = {"code": 10000, "success": True, "data": result_data, "total": data_len}
+		# result_data = json.dumps(dict_data, ensure_ascii=False)
+		res = {"code": 10000, "success": True, "data": dict_data, "total": data_len}
 		return JsonResponse(res)
 	
 	def post(self, request, *args, **kwargs):
@@ -339,7 +340,7 @@ class ServicesView(View):
 			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
 		# elif Services.objects.filter(is_delete=0).filter(service_name=service_name):
 		# 	res = {"code": 10011, "success": False, "msg": "添加服务失败，存在同名服务！"}
-		elif Services.objects.filter(Q(is_delete=0), Q(product_id=product_id), Q(project_id=project_id), Q(service_name=service_name)):
+		elif Services.objects.filter(is_delete=0, product_id=product_id, project_id=project_id, service_name=service_name):
 			res = {"code": 10011, "success": False, "msg": "添加服务失败，同产品线同项目组存在同名服务！！"}
 		else:
 			try:
@@ -371,9 +372,11 @@ class ServicesView(View):
 		for i in dict_data:
 			i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
 			i["fields"]["project_name"] = Project.objects.filter(project_id=i["fields"]["project_id"]).first().project_name
-			i["fields"]["test_user_name"] = User.objects.filter(user_id=i["fields"]["test_user_id"]).first().user_name
-		result_data = json.dumps(dict_data, ensure_ascii=False)
-		res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, "data": result_data, "total": data_len}
+			if i["fields"]["test_user_id"]:
+				i["fields"]["test_user_name"] = User.objects.filter(user_id=i["fields"]["test_user_id"]).first().user_name
+		# result_data = json.dumps(dict_data, ensure_ascii=False)
+		# print(type(result_data))
+		res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, "data": dict_data, "total": data_len}
 		return JsonResponse(res)
 	
 	def put(self, request, *args, **kwargs):
@@ -385,7 +388,7 @@ class ServicesView(View):
 			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
 		else:
 			db_data1 = db_data.filter(id=service_id)
-			db_data2 = db_data.filter(~Q(id=service_id)).filter(Q(product_id=product_id), Q(project_id=project_id), Q(service_name=service_name))
+			db_data2 = db_data.filter(~Q(id=service_id)).filter(product_id=product_id, project_id=project_id, service_name=service_name)
 			if not db_data1:
 				res = {"code": 10005, "success": False, "msg": "编辑服务失败，请确认该服务是否存在！"}
 			elif db_data2:
@@ -457,7 +460,7 @@ def getServiceDBData():
 	for m in s_list:
 		project_list = jsonpath(list(db_data.filter(product_id=m).values("project_id").distinct()), expr="$..project_id")  # 拿到产品线下对应的项目组
 		for n in project_list:
-			s_name_list = jsonpath(list(db_data.filter(Q(product_id=m), Q(project_id=n)).values("service_name").distinct()), expr="$..service_name")
+			s_name_list = jsonpath(list(db_data.filter(product_id=m, project_id=n).values("service_name").distinct()), expr="$..service_name")
 			res_data.append((m, n, s_name_list, len(s_name_list)))
 	return res_data
 
