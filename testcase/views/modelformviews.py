@@ -30,8 +30,10 @@ class CaseGet(View):
             if project_id:
                 search_dict['project_id'] = project_id
             if main_tasks:
-                search_dict['main_tasks'] = main_tasks
-            queryset = models.TestCase.objects.filter(**search_dict)
+                queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks).order_by('id')
+            if not main_tasks:
+                queryset = models.TestCase.objects.filter(**search_dict).order_by('id')
+            # 增加排序 修复分页器warning 增加main_tasks模糊查询
             #分页器
             ptr = Paginator(queryset, pageSize)
             masters = ptr.page(pageNo)
@@ -51,6 +53,9 @@ class CaseGet(View):
             for d in json_data:
                 prod_id.append(d['fields']['product_id'])
                 d['fields']['id']=int(d['pk'])
+                d['pageNo']=pageNo
+                d['pageSize'] = pageSize
+                d['total'] = ptr.count
                 del d['pk']
                 del d['model']
                 # 查询出所有product_name
