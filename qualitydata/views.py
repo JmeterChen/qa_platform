@@ -120,9 +120,17 @@ class IterableView(View):
         req = request.GET
         if not len(req):
             db_data = Iterable.objects.all().filter(is_delete=0).order_by("create_time")
-            result_data = serializers.serialize("json", db_data, ensure_ascii=False)
+            result_data = serializers.serialize("json", db_data)
             total = Paginator(result_data, default_pageSize).num_pages
-            res = {"code": 20000, "success": True, "data": {"pageData": result_data},
+            dict_data = json.loads(result_data)
+            result_data_list = []
+            for data1 in dict_data:
+                data1["fields"]["product_name"] = App.objects.filter(
+                    product_id=data1["fields"]["product_id"]).first().product_name
+                data1["fields"]["project_name"] = Project.objects.filter(
+                    project_id=data1["fields"]["project_id"]).first().project_name
+                result_data_list.append(data1['fields'])
+            res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
                    "pageInfo": {"pageNo": default_pageNo, "pageSize": default_pageSize, "total": total}}
         else:
             product_id, project_id, year, month, week, start_time, end_time = req.get('productId'), req.get(
@@ -135,26 +143,27 @@ class IterableView(View):
                 res = {"code": 10012, "success": False, "msg": "请选择年份和月份！"}
             else:
                 if product_id:
-                    db_data = Iterable.objects.filter(product_id=product_id, is_delete=0)
+                    db_data = Iterable.objects.filter(product_id=product_id, is_delete=0).order_by("create_time")
                 if project_id:
-                    db_data = Iterable.objects.filter(project_id=project_id, is_delete=0)
+                    db_data = Iterable.objects.filter(project_id=project_id, is_delete=0).order_by("create_time")
                 if start_time and end_time:
-                    db_data = Iterable.objects.filter(create_time=(start_time, end_time), is_delete=0)
+                    db_data = Iterable.objects.filter(create_time=(start_time, end_time), is_delete=0).order_by("create_time")
                 if year and week and month:
-                    db_data = Iterable.objects.filter(year=year, month=month, week=week, is_delete=0)
+                    db_data = Iterable.objects.filter(year=year, month=month, week=week, is_delete=0).order_by("create_time")
                 if year and month:
-                    db_data = Iterable.objects.filter(year=year, month=month, is_delete=0)
+                    db_data = Iterable.objects.filter(year=year, month=month, is_delete=0).order_by("create_time")
                 data = Paginator(db_data, page_size).get_page(page_no)
                 total = Paginator(db_data, default_pageSize).num_pages
                 result_data = serializers.serialize("json", data)
                 dict_data = json.loads(result_data)
-                for i in dict_data:
-                    i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
-                    i["fields"]["project_name"] = Project.objects.filter(project_id=i["fields"]["project_id"]).first().project_name
-                result_data = json.dumps(dict_data, ensure_ascii=False)
-                res = {"code": 20000, "success": True, "data": {"pageData": result_data},
+                result_data_list = []
+                for data1 in dict_data:
+                    data1["fields"]["product_name"] = App.objects.filter(product_id=data1["fields"]["product_id"]).first().product_name
+                    data1["fields"]["project_name"] = Project.objects.filter(project_id=data1["fields"]["project_id"]).first().project_name
+                    result_data_list.append(data1['fields'])
+                res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
                        "pageInfo": {"pageNo": page_no, "pageSize": page_size, "total": total}}
-        return JsonResponse(res)
+        return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
     def post(self, request, *args, **kwargs):
         req_data = json.loads(request.body)
@@ -186,7 +195,7 @@ class IterableView(View):
                 res = {"code": 10012, "success": False, "msg": "缺少必填参数！", "data": ""}
         else:
             res = {"code": 10012, "success": False, "msg": "请求参数为空！", "data": ""}
-        return JsonResponse(res)
+        return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
     def put(self, request, *args, **kwargs):
         req_data = json.loads(request.body)
@@ -216,7 +225,7 @@ class IterableView(View):
                         res = {"code": 10014, "success": False, "msg": "数据库不存在该记录", "data": ""}
                 except Exception as e:
                     res = {"code": 10014, "success": False, "msg": "查询id出错", "data": e}
-        return JsonResponse(res)
+        return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
 
 class OnlineBugView(View):
@@ -226,7 +235,15 @@ class OnlineBugView(View):
             db_data = OnlineBug.objects.all().filter(is_delete=0).order_by("create_time")
             result_data = serializers.serialize("json", db_data, ensure_ascii=False)
             total = Paginator(result_data, default_pageSize).num_pages
-            res = {"code": 20000, "success": True, "data": {"pageData": result_data},
+            dict_data = json.loads(result_data)
+            result_data_list = []
+            for data1 in dict_data:
+                data1["fields"]["product_name"] = App.objects.filter(
+                    product_id=data1["fields"]["product_id"]).first().product_name
+                data1["fields"]["project_name"] = Project.objects.filter(
+                    project_id=data1["fields"]["project_id"]).first().project_name
+                result_data_list.append(data1['fields'])
+            res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
                    "pageInfo": {"pageNo": default_pageNo, "pageSize": default_pageSize, "total": total}}
         else:
             product_id, project_id, year, month, week, start_time, end_time = req.get('productId'), req.get(
@@ -252,13 +269,16 @@ class OnlineBugView(View):
                 total = Paginator(db_data, default_pageSize).num_pages
                 result_data = serializers.serialize("json", data)
                 dict_data = json.loads(result_data)
-                for i in dict_data:
-                    i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
-                    i["fields"]["project_name"] = Project.objects.filter(project_id=i["fields"]["project_id"]).first().project_name
-                result_data = json.dumps(dict_data, ensure_ascii=False)
-                res = {"code": 20000, "success": True, "data": {"pageData": result_data},
+                result_data_list = []
+                for data1 in dict_data:
+                    data1["fields"]["product_name"] = App.objects.filter(
+                        product_id=data1["fields"]["product_id"]).first().product_name
+                    data1["fields"]["project_name"] = Project.objects.filter(
+                        project_id=data1["fields"]["project_id"]).first().project_name
+                    result_data_list.append(data1['fields'])
+                res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
                        "pageInfo": {"pageNo": page_no, "pageSize": page_size, "total": total}}
-        return JsonResponse(res)
+        return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
     def post(self, request, *args, **kwargs):
         req_data = json.loads(request.body)
@@ -290,7 +310,7 @@ class OnlineBugView(View):
                 res = {"code": 10012, "success": False, "msg": "缺少必填参数！", "data": ""}
         else:
             res = {"code": 10012, "success": False, "msg": "请求参数为空！", "data": ""}
-        return JsonResponse(res)
+        return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
     def put(self, request, *args, **kwargs):
         req_data = json.loads(request.body)
@@ -318,4 +338,4 @@ class OnlineBugView(View):
                         res = {"code": 10014, "success": False, "msg": "数据库不存在该记录", "data": ""}
                 except Exception as e:
                     res = {"code": 10014, "success": False, "msg": "查询id出错", "data": e}
-        return JsonResponse(res)
+        return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
