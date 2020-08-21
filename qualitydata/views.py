@@ -130,17 +130,17 @@ class IterableView(View):
                 data1["fields"]["project_name"] = Project.objects.filter(
                     project_id=data1["fields"]["project_id"]).first().project_name
                 result_data_list.append(data1['fields'])
-            res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
-                   "pageInfo": {"pageNo": default_pageNo, "pageSize": default_pageSize, "total": total}}
+            res = {"code": 20000, "success": True, "data": {"pageData": result_data_list}, "page_no": default_pageNo,
+                   "page_size": default_pageSize, "total": total}
         else:
-            product_id, project_id, year, month, week, start_time, end_time = req.get('productId'), req.get(
-                'projectId'), req.get('year'), req.get('month'), req.get('week'), req.get('startTime'), req.get(
-                'endTime')
-            page_size, page_no = req.get("pageSize", default_pageSize), req.get("pageNo", default_pageNo)
+            product_id, project_id, year, month, week, start_time, end_time = req.get('product_id'), req.get(
+                'project_id'), req.get('year'), req.get('month'), req.get('week'), req.get('start_time'), req.get(
+                'end_time')
+            page_size, page_no = req.get("page_size", default_pageSize), req.get("page_no", default_pageNo)
             if year is None and month:
-                res = {"code": 10012, "success": False, "msg": "请选择年份！"}
+                res = {"code": 10012, "success": False, "msg": "请选择年份！", "data": ""}
             elif year is None and month is None and week:
-                res = {"code": 10012, "success": False, "msg": "请选择年份和月份！"}
+                res = {"code": 10012, "success": False, "msg": "请选择年份和月份！", "data": ""}
             else:
                 if product_id:
                     db_data = Iterable.objects.filter(product_id=product_id, is_delete=0).order_by("create_time")
@@ -162,16 +162,16 @@ class IterableView(View):
                     data1["fields"]["project_name"] = Project.objects.filter(project_id=data1["fields"]["project_id"]).first().project_name
                     result_data_list.append(data1['fields'])
                 res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
-                       "pageInfo": {"pageNo": page_no, "pageSize": page_size, "total": total}}
+                       "page_no": page_no, "page_size": page_size, "total": total}
         return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
     def post(self, request, *args, **kwargs):
         req_data = json.loads(request.body)
         if req_data:
             product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, year, month, week = req_data.get(
-                "productId"), req_data.get("projectId"), req_data.get("publishNum"), req_data.get(
-                "casesNum"), req_data.get("bugsNum"), req_data.get(
-                "testUserId"), req_data.get("year"), req_data.get("month"), req_data.get("week")
+                "product_id"), req_data.get("project_id"), req_data.get("publish_num"), req_data.get(
+                "cases_num"), req_data.get("bugs_num"), req_data.get(
+                "test_user_id"), req_data.get("year"), req_data.get("month"), req_data.get("week")
             req_data["create_time"] = time
             if product_id and project_id and publish_num and cases_num and bugs_num and test_user_id and year and month and week:
                 product_id_values = App.objects.filter(product_id=product_id).first()
@@ -188,9 +188,9 @@ class IterableView(View):
                     except Exception as e:
                         res = {"code": 10008, "success": False, "msg": e, "data": ""}
                 elif product_id_values:
-                    res = {"code": 10000, "success": True, "msg": "产品线与项目组不匹配", "data": ""}
+                    res = {"code": 10000, "success": True, "msg": "产品线与项目组不匹配！", "data": ""}
                 else:
-                    res = {"code": 10000, "success": True, "msg": "不存在该产品线", "data": ""}
+                    res = {"code": 10000, "success": True, "msg": "不存在该产品线！", "data": ""}
             else:
                 res = {"code": 10012, "success": False, "msg": "缺少必填参数！", "data": ""}
         else:
@@ -206,10 +206,10 @@ class IterableView(View):
                     id_data = Iterable.objects.filter(is_delete=0, id=req_id)
                     if id_data:
                         product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, year, month, week = req_data.get(
-                            "productId"), req_data.get("projectId"), req_data.get(
-                            "publishNum"), req_data.get(
-                            "casesNum"), req_data.get("bugsNum"), req_data.get(
-                            "testUserId"), req_data.get("year"), req_data.get("month"), req_data.get("week")
+                            "product_id"), req_data.get("project_id"), req_data.get(
+                            "publish_num"), req_data.get(
+                            "cases_num"), req_data.get("bugs_num"), req_data.get(
+                            "test_user_id"), req_data.get("year"), req_data.get("month"), req_data.get("week")
                         if product_id and project_id and publish_num and cases_num and bugs_num and test_user_id and year and month and week:
                             try:
                                 Iterable.objects.filter(id=req_id).update(product_id=product_id, project_id=project_id,
@@ -220,11 +220,11 @@ class IterableView(View):
                                                                           update_time=time)
                                 res = {"code": 20000, "success": True, "msg": "编辑成功！", "data": req_data}
                             except Exception as e:
-                                res = {"code": 10014, "success": False, "msg": "编辑失败", "data": e}
+                                res = {"code": 10014, "success": False, "msg": "编辑失败！", "data": e}
                     else:
-                        res = {"code": 10014, "success": False, "msg": "数据库不存在该记录", "data": ""}
+                        res = {"code": 10014, "success": False, "msg": "数据库不存在该记录！", "data": ""}
                 except Exception as e:
-                    res = {"code": 10014, "success": False, "msg": "查询id出错", "data": e}
+                    res = {"code": 10014, "success": False, "msg": "查询id出错！", "data": e}
         return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
 
 
@@ -244,16 +244,16 @@ class OnlineBugView(View):
                     project_id=data1["fields"]["project_id"]).first().project_name
                 result_data_list.append(data1['fields'])
             res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
-                   "pageInfo": {"pageNo": default_pageNo, "pageSize": default_pageSize, "total": total}}
+                   "pageNo": default_pageNo, "pageSize": default_pageSize, "total": total}
         else:
-            product_id, project_id, year, month, week, start_time, end_time = req.get('productId'), req.get(
-                'projectId'), req.get('year'), req.get('month'), req.get('week'), req.get('startTime'), req.get(
-                'endTime')
-            page_size, page_no = req.get("pageSize", default_pageSize), req.get("pageNo", default_pageNo)
+            product_id, project_id, year, month, week, start_time, end_time = req.get('product_id'), req.get(
+                'project_id'), req.get('year'), req.get('month'), req.get('week'), req.get('start_time'), req.get(
+                'end_time')
+            page_size, page_no = req.get("page_size", default_pageSize), req.get("page_no", default_pageNo)
             if year is None and month:
-                res = {"code": 10012, "success": False, "msg": "请选择年份！"}
+                res = {"code": 10012, "success": False, "msg": "请选择年份！", "data": ""}
             elif year is None and month is None and week:
-                res = {"code": 10012, "success": False, "msg": "请选择年份和月份！"}
+                res = {"code": 10012, "success": False, "msg": "请选择年份和月份！", "data": ""}
             else:
                 if product_id:
                     db_data = OnlineBug.objects.filter(product_id=product_id, is_delete=0)
@@ -284,16 +284,16 @@ class OnlineBugView(View):
         req_data = json.loads(request.body)
         req_data["create_time"] = time
         if req_data:
-            product_id, project_id, feedback_bugs, online_bugs, online_accidents, year, month, week = req_data.get(
-                "productId"), req_data.get("projectId"), req_data.get("feedbackBugs"), req_data.get(
-                "onlineBugs"), req_data.get("onlineAccidents"), req_data.get("year"), req_data.get(
+            product_id, project_id, back_bugs, online_bugs, online_accidents, year, month, week = req_data.get(
+                "product_id"), req_data.get("product_id"), req_data.get("back_bugs"), req_data.get(
+                "online_bugs"), req_data.get("online_accidents"), req_data.get("year"), req_data.get(
                 "month"), req_data.get("week")
-            if product_id and project_id and feedback_bugs and online_bugs and online_accidents and year and month and week:
+            if product_id and project_id and back_bugs and online_bugs and online_accidents and year and month and week:
                 product_id_values = App.objects.filter(product_id=product_id).first()
                 project_id_values = Project.objects.filter(product_id=product_id, project_id=project_id)
                 if project_id_values:
                     try:
-                        db_data = {"product_id": product_id, "project_id": project_id, "back_bugs": feedback_bugs,
+                        db_data = {"product_id": product_id, "project_id": project_id, "back_bugs": back_bugs,
                                    "online_bugs": online_bugs, "year": year, "month": month, "week": week,
                                    "online_accidents": online_accidents, "create_time": time, "update_time": time,
                                    "is_delete": 0}
@@ -303,9 +303,9 @@ class OnlineBugView(View):
                     except Exception as e:
                         res = {"code": 10008, "success": False, "msg": e, "data": ""}
                 elif product_id_values:
-                    res = {"code": 10000, "success": True, "msg": "产品线与项目组不匹配", "data": ""}
+                    res = {"code": 10000, "success": True, "msg": "产品线与项目组不匹配！", "data": ""}
                 else:
-                    res = {"code": 10000, "success": True, "msg": "不存在该产品线", "data": ""}
+                    res = {"code": 10000, "success": True, "msg": "不存在该产品线！", "data": ""}
             else:
                 res = {"code": 10012, "success": False, "msg": "缺少必填参数！", "data": ""}
         else:
@@ -320,22 +320,22 @@ class OnlineBugView(View):
                 try:
                     id_data = OnlineBug.objects.filter(is_delete=0, id=req_id)
                     if id_data:
-                        product_id, project_id, feedback_bugs, online_bugs, online_accidents, year, month, week = req_data.get(
-                            "productId"), req_data.get("projectId"), req_data.get("feedbackBugs"), req_data.get(
-                            "onlineBugs"), req_data.get("onlineAccidents"), req_data.get("year"), req_data.get(
+                        product_id, project_id, back_bugs, online_bugs, online_accidents, year, month, week = req_data.get(
+                            "product_id"), req_data.get("project_id"), req_data.get("back_bugs"), req_data.get(
+                            "online_bugs"), req_data.get("online_accidents"), req_data.get("year"), req_data.get(
                             "month"), req_data.get("week")
-                        if product_id and project_id and feedback_bugs and online_bugs and online_accidents and year and month and week:
+                        if product_id and project_id and back_bugs and online_bugs and online_accidents and year and month and week:
                             try:
                                 OnlineBug.objects.filter(id=req_id).update(product_id=product_id, project_id=project_id,
-                                                                          back_bugs=feedback_bugs,
+                                                                          back_bugs=back_bugs,
                                                                           online_bugs=online_bugs, online_accidents=online_accidents,
                                                                           year=year, month=month, week=week,
                                                                           update_time=time)
                                 res = {"code": 20000, "success": True, "msg": "编辑成功！", "data": req_data}
                             except Exception as e:
-                                res = {"code": 10014, "success": False, "msg": "编辑失败", "data": e}
+                                res = {"code": 10014, "success": False, "msg": "编辑失败！", "data": e}
                     else:
-                        res = {"code": 10014, "success": False, "msg": "数据库不存在该记录", "data": ""}
+                        res = {"code": 10014, "success": False, "msg": "数据库不存在该记录！", "data": ""}
                 except Exception as e:
-                    res = {"code": 10014, "success": False, "msg": "查询id出错", "data": e}
+                    res = {"code": 10014, "success": False, "msg": "查询id出错！", "data": e}
         return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
