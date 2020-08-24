@@ -25,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '!t(=_!!mgfb$n%jaxo7n2x01@kia4c6crul57fdfmxvpeo+l#i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -45,8 +45,7 @@ INSTALLED_APPS = [
 	'mypro',
 	'qualitydata',
 	'problem_guide',
-	'user',
-	'qualitydata',
+	'user'
 ]
 
 # REST_FRAMEWORK = {
@@ -128,11 +127,18 @@ WSGI_APPLICATION = 'qa_platform.wsgi.application'
 
 if ENVIRONMENT == 'prod':
 	DATABASES = MYSQL.get("production")
-	DEBUG = False
+	CELERY_BROKER_URL = 'redis://10.50.255.104:6379/3'
+	CELERY_RESULT_BACKEND = 'redis://10.50.255.104:6379/4'
 elif ENVIRONMENT:
 	DATABASES = MYSQL.get(ENVIRONMENT)
+	DEBUG = True
+	CELERY_BROKER_URL = 'redis://10.50.255.104:6379/14'
+	CELERY_RESULT_BACKEND = 'redis://10.50.255.104:6379/15'
 else:
 	DATABASES = MYSQL.get("test")
+	DEBUG = True
+	CELERY_BROKER_URL = 'redis://127.0.0.1:6379/1'
+	CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/2'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -170,3 +176,7 @@ USE_TZ = False  # 处理数据库时间字段存在8个时区时差的问题
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+CELERY_RESULT_SERIALIZER = 'json'  # 结果序列化方案
+CELERYD_FORCE_EXECV = True
+CELERYD_CONCURRENCY = 4             # celery worker并发数
+CELERYD_MAX_TASKS_PER_CHILD = 7   # 每个worker最大执行任务数

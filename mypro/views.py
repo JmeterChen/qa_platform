@@ -1,23 +1,20 @@
-from django.shortcuts import render
-from django.http import Http404, HttpResponse, JsonResponse, QueryDict
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.utils.decorators import method_decorator
-import json, os
+from django.http import Http404, HttpResponse, JsonResponse
 import datetime
-from django.views import View
-from rest_framework.views import APIView
-from mypro.models import *
-import time, random
+import json
+import time
 from datetime import datetime
 
 from django.core import serializers
-from tapd.models import *
 from django.core.paginator import Paginator
 from django.db.models import Q
-from mypro.common.func import get_week_of_month, get_year_month_week_day_byString, execute_sql
-import pymysql
-from conf.config import db_mysql
-from jsonpath import jsonpath
+from django.http import Http404, HttpResponse, JsonResponse
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+
+from mypro.common.func import get_week_of_month
+from mypro.models import *
+from mypro import tasks
 
 # Create your views here.
 
@@ -85,13 +82,14 @@ class StudentView(View):
 	
 	def dispatch(self, request, *args, **kwargs):
 		func = getattr(self, request.method.lower())
-		print(dir(self))
 		return func(request, *args, **kwargs)
 	
 	def get(self, request, *args, **kwargs):
 		# return HttpResponse("GET")
-		users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "sys_time", "userName")
-		return JsonResponse(list(users), safe=False)
+		# users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "sys_time", "userName")
+		# return JsonResponse(list(users), safe=False)
+		res = tasks.saveJenkinsData.delay()
+		return JsonResponse({'status': 'successful', 'task_id': res.task_id})
 	
 	def post(self, request, *args, **kwargs):
 		return HttpResponse("POST")
@@ -454,51 +452,3 @@ class SonarData(View):
 		return JsonResponse(res)
 
 
-def getServiceDBData():
-	db_data = Services.objects.filter(is_delete=0)
-	res_data = []
-	s_list = jsonpath(list(db_data.values("product_id").distinct()), expr="$..product_id")  # 拿到产品线
-	for m in s_list:
-		project_list = jsonpath(list(db_data.filter(product_id=m).values("project_id").distinct()), expr="$..project_id")  # 拿到产品线下对应的项目组
-		for n in project_list:
-			s_name_list = jsonpath(list(db_data.filter(product_id=m, project_id=n).values("service_name").distinct()), expr="$..service_name")
-			res_data.append((m, n, s_name_list, len(s_name_list)))
-	return res_data
-
-
-def saveJenkinsData():
-	t = time.localtime()
-	t_str = time.strftime('%Y-%m-%d', t)
-	t_tuple = get_year_month_week_day_byString(t_str)
-	s_tuple = getServiceDBData()
-	for i in s_tuple:
-		sql_template = f"""
-				SELECT
-			  COUNT(1) '经营数据在线项目组',
-			  CASE
-			    WHEN issue_type = 1
-			    THEN '异味'
-			    WHEN issue_type = 2
-			    THEN 'bugs'
-			    WHEN issue_type = 3
-			    THEN '漏洞'
-			    ELSE issue_type
-			  END '问题类型'
-			FROM
-			  issues
-			WHERE project_uuid IN
-			  (SELECT
-			    project_uuid
-			  FROM
-			    projects
-			  WHERE `name` IN {tuple(i[2])[0] if len(tuple(i[2]))<=1 else tuple(i[2])})
-			  AND `status` = 'OPEN'
-			GROUP BY issue_type ;
-		"""
-		print(sql_template)
-		sql_res = execute_sql(sql_template)
-		SonarReport.objects.create(product_id=i[0], project_id=i[1], service_num=i[3], sonar_holes=sql_res[2][0],
-		                           sonar_bugs=i[1][0], year=t_tuple[0], month=t_tuple[1], week=t_tuple[2], day=t_tuple[3])
-	
-if __name__ == '__main__':
-	print(getServiceDBData)
