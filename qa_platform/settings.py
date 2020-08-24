@@ -43,7 +43,8 @@ INSTALLED_APPS = [
 	'tapd',
 	'rest_framework',
 	'mypro',
-	'qualitydata'
+	'qualitydata',
+	'problem_guide'
 ]
 
 # REST_FRAMEWORK = {
