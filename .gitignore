@@ -5,3 +5,6 @@ output/logs/
 
 # celery beat schedule file
 celerybeat-schedule
+
+# log to console
+nohup.out
