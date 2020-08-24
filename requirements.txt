@@ -2,7 +2,7 @@ requests==2.22.0
 Django==3.0.4
 PyMySQL==0.9.3
 jsonpath==0.82
-djangorestframework==3.11.1
-django-cors-headers==3.0.4
+djangorestframework==3.11.0
+django-cors-headers==3.4.0
 celery==4.4.2
 redis==3.5.3
