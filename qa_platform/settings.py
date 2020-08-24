@@ -44,7 +44,9 @@ INSTALLED_APPS = [
 	'rest_framework',
 	'mypro',
 	'qualitydata',
-	'problem_guide'
+	'problem_guide',
+	'user',
+	'qualitydata',
 ]
 
 # REST_FRAMEWORK = {
