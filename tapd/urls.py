@@ -28,5 +28,6 @@ urlpatterns = [
 	path('projects_list/', views.tokens_api),
 	path('del_token/', views.del_token),
 	path('search/', views.search),
-	path('update_projects/', views.updateToken)
+	path('update_projects/', views.updateToken),
+	path('token/', views.Tokens.as_view())
 ]

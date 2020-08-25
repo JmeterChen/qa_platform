@@ -3,70 +3,114 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from index.models import *
+from rest_framework import response, serializers
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
+from mypro.models import *
+import time
 
 
-# Create your views here.
+class AppSerializers(serializers.ModelSerializer):
+	class Meta:
+		model = App
+		# fields = "__all__"
+		fields = ["product_id", "product_name"]
 
 
-def base(request):
-	return render(request, 'index/base.html')
+class Paginator(PageNumberPagination):
+	
+	# 默认每页显示的数据条数
+	page_size = 10
+	
+	# 获取URL参数中的设置页数
+	page_query_param = 'page_number'
+	# 获取URL参数中的设置的每页显示数据条数
+	page_size_query_param = 'page_size'
+	# 最大支持的每页显示的条数
+	max_page_size = 20
 
 
-def hello(request):
-	return render(request, 'index/hello.html')
+class Apps(APIView):
+	
+	def get(self, request, *args, **kwargs):
+		# 获取有效的产品线
+		app_list = App.objects.filter(is_delete=0).order_by("create_time")
+		# 计算产品线个数
+		total = app_list.count()
+		# 创建分页对象实例
+		paginator = Paginator()
+		page_app_list = paginator.paginate_queryset(app_list, self.request, view=self)
+		page_number = request.GET.get("page_number", 1)
+		page_size = request.GET.get("page_size", paginator.page_size)
+		# 对数据序列化
+		# result = AppSerializers(instance=page_app_list, many=True)
+		result = AppSerializers(instance=page_app_list, many=True)
 
-
-def user_list(request):
-	users = Users.objects.all()
-	data_list = []
-	for i in users:
-		i_dict = {"id": i.id, "username": i.username, "phoneNumber": i.phoneNumber, "sex": "男" if i.sex == 1 else "女",
-		          "email": i.email}
-		data_list.append(i_dict)
-	return JsonResponse(data_list, safe=False)
-
-
-def user(request):
-	users = Users.objects.all()
-	userList = []
-	for i in users:
-		i_dict = {"id": i.id, "username": i.username, "phoneNumber": i.phoneNumber, "sex": "男" if i.sex == 1 else "女",
-		          "email": i.email}
-		userList.append(i_dict)
-	return render(request, 'index/user.html', {"userList": userList})
-
-
-def user_add(request):
-	data_dict = json.loads(request.body)
-	username = data_dict.get("username")
-	print(username)
-	phoneNumber = data_dict.get("phoneNumber")
-	print(phoneNumber)
-	email = data_dict.get("email")
-	print(email)
-	sex = 2 if data_dict.get("sex") == '女' else 1
-	if username and phoneNumber and email:
-		print(len(phoneNumber), email.__contains__("@"))
-		if len(phoneNumber) == 11 and email.__contains__("@" and '.'):
-			p = Users.objects.filter(phoneNumber=phoneNumber)
-			e = Users.objects.filter(email=email)
-			if not p.exists() and not e.exists():
-				Users.objects.create(username=username, phoneNumber=phoneNumber, email=email, sex=sex)
-				return JsonResponse({"code": 200, 'msg': '新增用户成功'})
-			else:
-				data = {'code': 10001,  'msg': '电话号码或者邮箱已存在！'}
+		return response.Response({
+			"code": 1000,
+			"success": True,
+			"page_number": page_number,
+			"page_size": page_size,
+			"total": total,
+			"data": result.data
+		})
+		
+	def post(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		req_data["product_id"] = str(round(time.time()))[::-1][:-3]
+		app = AppSerializers(data=req_data)
+		if app.is_valid():
+			app.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"data": req_data
+			})
 		else:
-			data = {'code': 10002, 'msg': '电话号码或邮箱格式不对！'}
-	else:
-		data = {'code': 10003, 'msg': '缺少必填参数！'}
-	# return render(request, 'error.html', {"info": info})
-	return JsonResponse(data)
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": app.errors
+			})
 
-
-def user_delete(request):
-	pass
-
-
-
-
+	def put(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		app = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
+		if not app:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该产品线是否存在！"
+			})
+		check_app = AppSerializers(instance=app, data=req_data)
+		if check_app.is_valid():
+			check_app.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"data": req_data
+			})
+		else:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": check_app.errors
+			})
+	
+	def delete(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		app = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
+		if not app:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该产品线是否存在!"
+			})
+		else:
+			app.is_delete = 1
+			app.save()
+			return response.Response({
+				"code": 10000,
+				"success": True,
+				"msg": "产品线删除成功!"
+			})

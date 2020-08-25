@@ -423,22 +423,17 @@ class SonarData(View):
 	def get(self, request, *args, **kwargs):
 		db_data = SonarReport.objects.order_by("create_time")
 		req = request.GET
+		time_start, time_end = req.get("time_start"), req.get("time_end")
+		month_num = req.get("month_num")
 		pageSize, pageNum = req.get("pageSize", default_pageSize), req.get("pageNum", default_pageNum)
 		if req.get("product_id"):
 			db_data = db_data.filter(product_id=req.get("product_id"))
 		if req.get("project_id"):
 			db_data = db_data.filter(project_id=req.get("project_id"))
-		if req.get("req_time") and not req.get("time_type"):
-			time_list = list(map(lambda x: int(x), req.get("req_time").split("-")))
-			db_data = db_data.filter(year=time_list[0], month=time_list[1], day=time_list[2])
-		if req.get("req_time") and req.get("time_type"):
-			time_list = list(map(lambda x: int(x), req.get("req_time").split("-")))
-			if req.get("time_type") == "week":     # week
-				week = get_week_of_month(time_list[0], time_list[1], time_list[2])
-				db_data = db_data.filter(year=time_list[0], month=time_list[1], week=week)
-			elif req.get("time_type") == "month":      # month
-				db_data = db_data.filter(year=time_list[0], month=time_list[1])
-				
+		if time_start and time_end:
+			db_data = db_data.filter(create_time__range=[time_start, time_end])
+		elif req.get("time_type") == "month" and month_num:
+			db_data = db_data.filter(month=month_num)
 		data_len = db_data.__len__()
 		data = Paginator(db_data, pageSize).get_page(pageNum)
 		result_data = serializers.serialize("json", data, ensure_ascii=False)
@@ -447,8 +442,8 @@ class SonarData(View):
 			i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
 			i["fields"]["project_name"] = Project.objects.filter(project_id=i["fields"]["project_id"]).first().project_name
 			i["fields"]["count_time"] = f'{i["fields"]["create_time"].split("T")[0]}'
-		result_data = json.dumps(dict_data, ensure_ascii=False)
-		res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, "data": result_data, "total": data_len}
+		# result_data = json.dumps(dict_data, ensure_ascii=False)
+		res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, "data": dict_data, "total": data_len}
 		return JsonResponse(res)
 
 
