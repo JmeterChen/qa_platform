@@ -1,13 +1,12 @@
-
 from django.views import View
-from mypro.models import Iterable,OnlineBug, App, Project,User
+from mypro.models import Iterable, OnlineBug, App, Project, User
 from django.http import JsonResponse
 import json
 from django.core import serializers
 from django.core.paginator import Paginator
 import time
 import datetime
-from django.db.models import Q
+from django.db.models import Q, Sum, Count
 
 default_pageNo = 1
 default_pageSize = 10
@@ -15,82 +14,31 @@ time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 
 class IterableView(View):
-    # def get(self, request, *args, **kwargs):
-    #     req = request.GET
-    #     if not len(req):
-    #         db_data = Iterable.objects.all().filter(is_delete=0).order_by("create_time")
-    #         result_data = serializers.serialize("json", db_data)
-    #         total = Paginator(result_data, default_pageSize).num_pages
-    #         dict_data = json.loads(result_data)
-    #         result_data_list = []
-    #         for data1 in dict_data:
-    #             data1["fields"]["product_name"] = App.objects.filter(
-    #                 product_id=data1["fields"]["product_id"]).first().product_name
-    #             data1["fields"]["project_name"] = Project.objects.filter(
-    #                 project_id=data1["fields"]["project_id"]).first().project_name
-    #             result_data_list.append(data1['fields'])
-    #         res = {"code": 20000, "success": True, "data": {"pageData": result_data_list}, "page_no": default_pageNo,
-    #                "page_size": default_pageSize, "total": total}
-    #     else:
-    #         product_id, project_id, year, month, week, start_time, end_time = req.get('product_id'), req.get(
-    #             'project_id'), req.get('year'), req.get('month'), req.get('week'), req.get('start_time'), req.get(
-    #             'end_time')
-    #         page_size, page_no = req.get("page_size", default_pageSize), req.get("page_no", default_pageNo)
-    #         if year is None and month:
-    #             res = {"code": 10012, "success": False, "msg": "请选择年份！", "data": ""}
-    #         elif year is None and month is None and week:
-    #             res = {"code": 10012, "success": False, "msg": "请选择年份和月份！", "data": ""}
-    #         else:
-    #             if product_id:
-    #                 db_data = Iterable.objects.filter(product_id=product_id, is_delete=0).order_by("create_time")
-    #             if project_id:
-    #                 db_data = Iterable.objects.filter(project_id=project_id, is_delete=0).order_by("create_time")
-    #             if start_time and end_time:
-    #                 db_data = Iterable.objects.filter(create_time=(start_time, end_time), is_delete=0).order_by("create_time")
-    #             if year and week and month:
-    #                 db_data = Iterable.objects.filter(year=year, month=month, week=week, is_delete=0).order_by("create_time")
-    #             if year and month:
-    #                 db_data = Iterable.objects.filter(year=year, month=month, is_delete=0).order_by("create_time")
-    #             data = Paginator(db_data, page_size).get_page(page_no)
-    #             total = Paginator(db_data, default_pageSize).num_pages
-    #             result_data = serializers.serialize("json", data)
-    #             dict_data = json.loads(result_data)
-    #             result_data_list = []
-    #             for data1 in dict_data:
-    #                 data1["fields"]["product_name"] = App.objects.filter(product_id=data1["fields"]["product_id"]).first().product_name
-    #                 data1["fields"]["project_name"] = Project.objects.filter(project_id=data1["fields"]["project_id"]).first().project_name
-    #                 result_data_list.append(data1['fields'])
-    #             res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
-    #                    "page_no": page_no, "page_size": page_size, "total": total}
-    #     return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
-
     def get(self, request, *args, **kwargs):
         req = request.GET
-        if req.get('week') and req.get('month') is None:
-            res = {"code": 10012, "success": False, "msg": "请选择月份！", "data": ""}
-            return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
-        if req.get('month') and req.get('year') is None:
-            res = {"code": 10012, "success": False, "msg": "请选择年份！", "data": ""}
-            return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
         conditions = {}
+        stat_time_condition1 = {}
+        stat_time_condition2 = {}
         if req.get('project_id'):
             conditions['project_id'] = req.get('project_id')
         if req.get('product_id'):
             conditions['product_id'] = req.get('product_id')
-        if req.get('year'):
-            conditions['year'] = req.get('year')
-        if req.get('month'):
-            conditions['month'] = req.get('month')
-        if req.get('week'):
-            conditions['week'] = req.get('week')
-        if req.get('start_time'):
-            conditions['create_time__gte'] = req.get('start_time')
-        if req.get('end_time'):
-            conditions['create_time__lte'] = req.get('end_time')
+        if req.get('start_time') and req.get('end_time'):
+            stat_time_condition1['start_time__gte'] = req.get('start_time')
+            stat_time_condition1['start_time__lte'] = req.get('end_time')
+            stat_time_condition2['end_time__gte'] = req.get('start_time')
+            stat_time_condition2['end_time__lte'] = req.get('end_time')
+        if req.get('create_start_time'):
+            conditions['create_time__gte'] = req.get('create_start_time')
+        if req.get('create_end_time'):
+            conditions['create_time__lte'] = req.get('create_end_time')
         conditions['is_delete'] = 0
         page_size, page_no = req.get("page_size", default_pageSize), req.get("page_no", default_pageNo)
 
-        db_data = Iterable.objects.filter(**conditions).order_by('create_time')
+        db_data = Iterable.objects.filter(
+            (Q(**stat_time_condition1) | Q(**stat_time_condition2)) & Q(**conditions)).values('product_id',
+                                                                                              'project_id').annotate(
+            publish_num=Sum('publish_num'), cases_num=Sum('cases_num'), bugs_num=Sum('bugs_num'))
         page_data = Paginator(db_data, page_size).get_page(page_no)
         total = Paginator(db_data, default_pageSize).count
         project_id_list = [i['project_id'] for i in page_data.object_list.values('project_id')]
@@ -99,15 +47,37 @@ class IterableView(View):
         product_info_list = App.objects.filter(product_id__in=product_id_list).values('product_id', 'product_name')
         # 查询项目信息
         project_info_list = Project.objects.filter(project_id__in=project_id_list).values('project_id', 'project_name')
+        # 根据项目id查询统计开始时间和结束时间，同一个项目下取最早的开始时间和最晚的截止时间
+        base_info_list = Iterable.objects.filter(project_id__in=project_id_list)
+        stat_start_time_map = {}
+        stat_end_time_map = {}
+        create_time_map = {}
+        op_user_map = {}
+        for data in base_info_list:
+
+            if not stat_start_time_map.keys().__contains__(data.project_id) or stat_start_time_map[data.project_id] > data.start_time:
+                stat_start_time_map[data.project_id] = data.start_time
+            if not stat_end_time_map.keys().__contains__(data.project_id) or stat_end_time_map[data.project_id] < data.end_time:
+                stat_end_time_map[data.project_id] = data.end_time
+            if not create_time_map.keys().__contains__(data.project_id):
+                create_time_map[data.project_id] = data.create_time
+            if not op_user_map.keys().__contains__(data.project_id):
+                op_user_map[data.project_id] = data.op_user_name
+
+
         product_info_map = {i['product_id']: i['product_name'] for i in product_info_list}
         project_info_map = {i['project_id']: i['project_name'] for i in project_info_list}
 
-        result_data = serializers.serialize("json", page_data.object_list)
-        dict_data = json.loads(result_data)
-        result_data_list = [i['fields'] for i in dict_data]
-        for data in result_data_list:
+        result_data_list = []
+        for data in page_data.object_list:
             data['product_name'] = product_info_map[data['product_id']]
             data['project_name'] = project_info_map[data['project_id']]
+            data['create_time'] = create_time_map[data['project_id']].strftime("%Y-%m-%d")
+            data['stat_start_time'] = stat_start_time_map[data['project_id']].strftime("%Y-%m-%d")
+            data['stat_end_time'] = stat_end_time_map[data['project_id']].strftime("%Y-%m-%d")
+            data['op_user_name'] = op_user_map[data['project_id']]
+            result_data_list.append(data)
+            # data['start_time'] = req.get('start_time')
 
         res = {"code": 20000, "success": True, "data": {"pageData": result_data_list},
                "page_no": page_no, "page_size": page_size, "total": total}
@@ -116,20 +86,22 @@ class IterableView(View):
     def post(self, request, *args, **kwargs):
         req_data = json.loads(request.body)
         if req_data:
-            product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, year, month, week = req_data.get(
+            product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, start_time, end_time = req_data.get(
                 "product_id"), req_data.get("project_id"), req_data.get("publish_num"), req_data.get(
                 "cases_num"), req_data.get("bugs_num"), req_data.get(
-                "test_user_id"), req_data.get("year"), req_data.get("month"), req_data.get("week")
+                "test_user_id"), req_data.get("start_time"), req_data.get("end_time")
             req_data["create_time"] = time
-            if product_id and project_id and publish_num and cases_num and bugs_num and test_user_id and year and month and week:
+            op_user_name = request.META.get("HTTP_NAME", '')
+            if product_id and project_id and publish_num and cases_num and bugs_num and test_user_id and start_time and end_time and op_user_name:
                 product_id_values = App.objects.filter(product_id=product_id).first()
                 project_id_values = Project.objects.filter(product_id=product_id, project_id=project_id)
                 if project_id_values:
                     try:
                         db_data = {"product_id": product_id, "project_id": project_id,
-                                "publish_num": publish_num, "cases_num": cases_num, "year": year, "month": month,
-                                "week": week, "bugs_num": bugs_num, "test_user_id": test_user_id,
-                                "create_time": time, "update_time": time, "is_delete": 0}
+                                   "publish_num": publish_num, "cases_num": cases_num, "end_time": end_time,
+                                   "op_user_name": op_user_name,
+                                   "start_time": start_time, "bugs_num": bugs_num, "test_user_id": test_user_id,
+                                   "create_time": time, "update_time": time, "is_delete": 0}
                         data = Iterable.objects.create(**db_data)
                         data.save()
                         res = {"code": 20000, "success": True, "msg": "添加成功！", "data": db_data}
@@ -153,18 +125,20 @@ class IterableView(View):
                 try:
                     id_data = Iterable.objects.filter(is_delete=0, id=req_id)
                     if id_data:
-                        product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, year, month, week = req_data.get(
+                        product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, start_time, end_time = req_data.get(
                             "product_id"), req_data.get("project_id"), req_data.get(
                             "publish_num"), req_data.get(
                             "cases_num"), req_data.get("bugs_num"), req_data.get(
-                            "test_user_id"), req_data.get("year"), req_data.get("month"), req_data.get("week")
-                        if product_id and project_id and publish_num and cases_num and bugs_num and test_user_id and year and month and week:
+                            "test_user_id"), req_data.get("start_time"), req_data.get("end_time")
+                        op_user_name = request.META.get("HTTP_NAME", '')
+                        if product_id and project_id and publish_num and cases_num and bugs_num and test_user_id and start_time and end_time and op_user_name:
                             try:
                                 Iterable.objects.filter(id=req_id).update(product_id=product_id, project_id=project_id,
                                                                           publish_num=publish_num,
                                                                           cases_num=cases_num, bugs_num=bugs_num,
                                                                           test_user_id=test_user_id,
-                                                                          year=year, month=month, week=week,
+                                                                          start_time=start_time, end_time=end_time,
+                                                                          op_user_name=op_user_name,
                                                                           update_time=time)
                                 res = {"code": 20000, "success": True, "msg": "编辑成功！", "data": req_data}
                             except Exception as e:
@@ -324,10 +298,11 @@ class OnlineBugView(View):
                         if product_id and project_id and back_bugs and online_bugs and online_accidents and year and month and week:
                             try:
                                 OnlineBug.objects.filter(id=req_id).update(product_id=product_id, project_id=project_id,
-                                                                          back_bugs=back_bugs,
-                                                                          online_bugs=online_bugs, online_accidents=online_accidents,
-                                                                          year=year, month=month, week=week,
-                                                                          update_time=time)
+                                                                           back_bugs=back_bugs,
+                                                                           online_bugs=online_bugs,
+                                                                           online_accidents=online_accidents,
+                                                                           year=year, month=month, week=week,
+                                                                           update_time=time)
                                 res = {"code": 20000, "success": True, "msg": "编辑成功！", "data": req_data}
                             except Exception as e:
                                 res = {"code": 10014, "success": False, "msg": "编辑失败！", "data": e}
