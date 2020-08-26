@@ -22,6 +22,7 @@ class App(models.Model):
 	product_name = models.CharField('产品线名称', null=False, unique=True, max_length=20, default='')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -35,6 +36,7 @@ class Project(models.Model):
 	test_user_id = models.CharField(null=False, max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -53,6 +55,7 @@ class Iterable(models.Model):
 	end_time = models.DateTimeField('结束时间', null=False, default='1970-01-01')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -66,6 +69,7 @@ class User(models.Model):
 	phone_number = models.CharField(null=False, unique=True, max_length=15)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -84,6 +88,7 @@ class Devices(models.Model):
 	remark = models.CharField(max_length=100)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -135,6 +140,7 @@ class TestCase(models.Model):
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -150,6 +156,7 @@ class TestReport(models.Model):
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -167,6 +174,7 @@ class ProblemPlus(models.Model):
 	case_info_url = models.CharField(null=False, max_length=200)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 
 	class Meta:
 		db_table = 'qa_problem_plus'
@@ -187,6 +195,7 @@ class Services(models.Model):
 	test_user_id = models.CharField(null=False, max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20, default='')
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
