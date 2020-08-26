@@ -30,9 +30,9 @@ class CaseGet(View):
             if project_id:
                 search_dict['project_id'] = project_id
             if main_tasks:
-                queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks).order_by('id')
+                queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks,is_delete=0).order_by('id')
             if not main_tasks:
-                queryset = models.TestCase.objects.filter(**search_dict).order_by('id')
+                queryset = models.TestCase.objects.filter(**search_dict,is_delete=0).order_by('id')
             # 增加排序 修复分页器warning 增加main_tasks模糊查询
             #分页器
             ptr = Paginator(queryset, pageSize)
@@ -49,13 +49,11 @@ class CaseGet(View):
             #             for q in prod_name:
             #                 d['fields']['product_name'] = q['product_name']
             # 方法二 内存中操作和赋值 效率更快
+
             prod_id = []
             for d in json_data:
                 prod_id.append(d['fields']['product_id'])
                 d['fields']['id']=int(d['pk'])
-                d['pageNo']=pageNo
-                d['pageSize'] = pageSize
-                d['total'] = ptr.count
                 del d['pk']
                 del d['model']
                 # 查询出所有product_name
@@ -84,11 +82,15 @@ class CaseGet(View):
             for d in json_data:
                 d['fields']['project_name'] = dic[d['fields']['project_id']]
 
-            return JsonResponse({
-                "code": 0,
-                "msg":"success",
-                "data": json_data,
-            })
+            ret ={}
+            ret['code']=0
+            ret['msg']='success'
+            ret['data']=json_data
+            ret['pageNo'] = pageNo
+            ret['pageSize'] = pageSize
+            ret['total'] = ptr.count
+            return JsonResponse(ret)
+
 
 class CaseAdd(View):
     def post(self,request):
@@ -136,13 +138,27 @@ class CaseUpdate(View):
 
 
 class CaseDel(View):
+    def get(self,request):
+        if request.GET.get('id'):
+            delete_id = request.GET.get('id')
+            models.TestCase.objects.filter(id=delete_id).update(is_delete=1)
+            return JsonResponse({
+                "code": 0,
+                "msg":"sucess"
+            })
+        else:
+            return JsonResponse({
+                "code": 1,
+                "msg": "传参错误"
+            })
 
-    def delete(self,request):
-        #从请求body中获取ID 序列化
-        delete_set = json.loads(request.body.decode())
-        delete_id = delete_set.get('id')
-        models.TestCase.objects.filter(id=delete_id).update(is_delete=1)
-        return JsonResponse({
-            "code": 0,
-            "msg":"sucess"
-        })
+    #
+    # def delete(self,request):
+    #     #从请求body中获取ID 序列化
+    #     delete_set = json.loads(request.body.decode())
+    #     delete_id = delete_set.get('id')
+    #     models.TestCase.objects.filter(id=delete_id).update(is_delete=1)
+    #     return JsonResponse({
+    #         "code": 0,
+    #         "msg":"sucess"
+    #     })
