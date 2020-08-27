@@ -388,7 +388,7 @@ class ServicesViewApiView(APIView):
 	
 	def post(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		app = ServiceSerializers(data=req_data)
 		if app.is_valid():
 			data = app.save()
@@ -407,7 +407,7 @@ class ServicesViewApiView(APIView):
 	
 	def put(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		app = Services.objects.filter(pk=req_data.get("id"), is_delete=0).first()
 		if not app:
 			return JsonResponse({
@@ -432,7 +432,7 @@ class ServicesViewApiView(APIView):
 	
 	def delete(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		app = Services.objects.filter(pk=req_data.get("id"), is_delete=0).first()
 		if not app:
 			return JsonResponse({
