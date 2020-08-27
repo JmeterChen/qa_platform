@@ -106,11 +106,8 @@ class StudentView(View):
 
 class ProductView(APIView):
 	def get(self, request, *args, **kwargs):
-		# 获取有效的产品线
 		db_data = App.objects.filter(is_delete=0).order_by("create_time")
-		# 计算产品线个数
 		total = db_data.count()
-		# 创建分页对象实例
 		paginator = GeneralPaginator()
 		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
 		page_number = request.GET.get("page_number", 1)
@@ -196,12 +193,10 @@ class ProjectView(APIView):
 	def get(self, request, *args, **kwargs):
 		db_data = Project.objects.filter(is_delete=0).order_by("create_time")
 		total = db_data.count()
-		# 创建分页对象实例
 		paginator = GeneralPaginator()
 		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
 		page_number = request.GET.get("page_number", 1)
 		page_size = request.GET.get("page_size", paginator.page_size)
-		# 对数据序列化
 		result = ProjectSerializers(instance=page_app_list, many=True)
 		return response.Response({
 			"code": 1000,
