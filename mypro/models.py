@@ -105,6 +105,7 @@ class SonarReport(models.Model):
 	month = models.IntegerField(null=False, default=1)
 	year = models.IntegerField(null=False, default=1970)
 	day = models.IntegerField(null=False, default=1)
+	is_month = models.IntegerField('月度数据', choices=((0, '否'), (1, '是')), default=0)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
 
@@ -135,7 +136,7 @@ class TestCase(models.Model):
 	project_id = models.CharField(null=False,  max_length=20)
 	iterable_name = models.CharField(null=False, max_length=50)
 	main_tasks = models.CharField(null=False, max_length=100)
-	test_cases_url = models.URLField(null=False, unique=True, max_length=200)
+	test_cases_url = models.URLField(null=False, max_length=200)
 	# cases_num = models.IntegerField('用例条数', default=0)
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)

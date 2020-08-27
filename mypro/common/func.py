@@ -3,9 +3,10 @@
 # @Date : 2020-08-19
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pymysql, os
 from conf.config import db_mysql
+import time, calendar
 
 
 def get_week_of_month(year, month, day):
@@ -44,8 +45,39 @@ def execute_sql(sql):
 	return res
 
 
+def mondayOfWeek():
+	"""
+	:return:            获取本周周一日期
+	"""
+	dayOfWeek = datetime.now().isoweekday()
+	nowDate = datetime.now()
+	delta = timedelta(days=dayOfWeek - 1)
+	monday = nowDate - delta
+	return monday.strftime("%Y-%m-%d")
+
+
+def sundayOfWeek():
+	"""
+	:return:            获取本周周日日期
+	"""
+	dayOfWeek = datetime.now().isoweekday()
+	nowDate = datetime.now()
+	delta = timedelta(days=7 - dayOfWeek)
+	monday = nowDate + delta
+	return monday.strftime("%Y-%m-%d")
+
+
+def monthOfTime():
+	day_now = time.localtime()
+	day_begin = '%d-%02d-01' % (day_now.tm_year, day_now.tm_mon)
+	wday, monthRange = calendar.monthrange(day_now.tm_year, day_now.tm_mon)
+	day_end = '%d-%02d-%02d' % (day_now.tm_year, day_now.tm_mon, monthRange)
+	return day_begin, day_end
+	
+	
 if __name__ == '__main__':
-	_str = '2020-08-17'
-	_str_list = list(map(lambda x: int(x), _str.split("-")))
-	print(_str_list)
-	print(get_week_of_month(_str_list[0], _str_list[1], _str_list[2]))
+	# _str = '2020-08-17'
+	# _str_list = list(map(lambda x: int(x), _str.split("-")))
+	# print(_str_list)
+	# print(get_week_of_month(_str_list[0], _str_list[1], _str_list[2]))
+	print(monthOfTime())

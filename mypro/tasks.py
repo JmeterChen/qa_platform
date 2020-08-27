@@ -23,7 +23,7 @@ def getServiceDBData():
 
 
 @shared_task
-def saveJenkinsData():
+def saveJenkinsData(tags=None):
 	t = time.localtime()
 	t_str = time.strftime('%Y-%m-%d', t)
 	t_tuple = get_year_month_week_day_byString(t_str)
@@ -55,5 +55,14 @@ def saveJenkinsData():
 			GROUP BY i.`issue_type` ;
 		"""
 		sql_res = execute_sql(sql_template)
-		SonarReport.objects.create(product_id=i[0], project_id=i[1], service_num=i[3], sonar_holes=sql_res[2][0],
-		                           sonar_bugs=i[1][0], year=t_tuple[0], month=t_tuple[1], week=t_tuple[2], day=t_tuple[3])
+		data = {}
+		for m in sql_res:
+			data[m[1]] = m[0]
+		if not tags:
+			SonarReport.objects.create(product_id=i[0], project_id=i[1], service_num=i[3], sonar_holes=data.get("漏洞", 0),
+			                           sonar_bugs=data.get("bugs", 0), year=t_tuple[0], month=t_tuple[1], week=t_tuple[2],
+			                           day=t_tuple[3])
+		else:
+			SonarReport.objects.create(product_id=i[0], project_id=i[1], service_num=i[3], sonar_holes=data.get("漏洞", 0),
+			                           sonar_bugs=data.get("bugs", 0), year=t_tuple[0], month=t_tuple[1], week=t_tuple[2],
+			                           day=t_tuple[3], is_month=1)

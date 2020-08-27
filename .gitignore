@@ -4,7 +4,7 @@ venv/
 output/logs/
 
 # celery beat schedule file
-celerybeat-schedule
+celerybeat-schedule.db
 
 # log to console
 nohup.out
