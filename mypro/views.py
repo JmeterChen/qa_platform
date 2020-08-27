@@ -3,7 +3,7 @@ import datetime
 import json
 import time
 from datetime import datetime
-
+from urllib.parse import unquote
 from django.core import serializers
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -127,7 +127,7 @@ class ProductView(APIView):
 	
 	def post(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		req_data["product_id"] = str(round(time.time()))
 		app = AppSerializers(data=req_data)
 		if app.is_valid():
@@ -146,7 +146,7 @@ class ProductView(APIView):
 	
 	def put(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		db_data = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
 		if not db_data:
 			return JsonResponse({
@@ -171,7 +171,7 @@ class ProductView(APIView):
 	
 	def delete(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		db_data_one = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
 		if not db_data_one:
 			return JsonResponse({
@@ -209,7 +209,7 @@ class ProjectView(APIView):
 	
 	def post(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		req_data["project_id"] = str(round(time.time()))[::-1][:-3]
 		app = ProjectSerializers(data=req_data)
 		if app.is_valid():
@@ -228,7 +228,7 @@ class ProjectView(APIView):
 	
 	def put(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		req_data["operator"] = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		db_data = Project.objects.filter(pk=req_data.get("project_id"), is_delete=0).first()
 		if not db_data:
 			return JsonResponse({
@@ -253,6 +253,7 @@ class ProjectView(APIView):
 	
 	def delete(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		db_data = Project.objects.filter(pk=req_data.get("project_id"), is_delete=0).first()
 		if not db_data:
 			return JsonResponse({
@@ -277,6 +278,7 @@ default_pageNum = 1
 class ServicesView(View):
 	def post(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		service_name, service_type, product_id, project_id, coder = req_data.get("service_name"), req_data.get(
 			"service_type"), req_data.get("product_id"), req_data.get("project_id"), req_data.get("coder")
 		if not (service_name and service_type and product_id and project_id and coder):
@@ -324,6 +326,7 @@ class ServicesView(View):
 	
 	def put(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		db_data = Services.objects.filter(is_delete=0)
 		service_id, service_name, product_id, project_id = req_data.get("service_id"), req_data.get("service_name"), req_data.get("product_id"), req_data.get("project_id")
 		
@@ -347,8 +350,9 @@ class ServicesView(View):
 		return JsonResponse(res)
 			
 	def delete(self, request, *args, **kwargs):
-		request_data = json.loads(request.body)
-		service_id = request_data.get("service_id")
+		req_data = json.loads(request.body)
+		service_id = req_data.get("service_id")
+		req_data["operator"] = unquote(request.META.get('HTTP_OPERATOR'))
 		db_data = Services.objects.filter(is_delete=0)
 		if not service_id:
 			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
