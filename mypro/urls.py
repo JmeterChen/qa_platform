@@ -20,5 +20,6 @@ urlpatterns = [
 	path('product/', views.ProductView.as_view()),
 	path('project/', views.ProjectView.as_view()),
 	path('services/', views.ServicesView.as_view()),
+	path('service/', views.ServicesViewApiView.as_view()),
 	path('sonars/', views.SonarData.as_view())
 ]

@@ -38,13 +38,17 @@ class ProjectSerializers(serializers.ModelSerializer):
 		fields = ["product_name", "product_id", "project_name", "project_id", "test_user_id", "test_user_name", "operator"]
 	
 	def get_product_name(self, obj):
-		product_id = obj.product_id
-		product_name = App.objects.filter(product_id=product_id).first().product_name
+		product_name = ""
+		if obj.product_id:
+			product_id = obj.product_id
+			product_name = App.objects.filter(product_id=product_id).first().product_name
 		return product_name
 	
 	def get_test_user_name(self, obj):
-		user_id = obj.test_user_id
-		user_name = User.objects.filter(user_id=user_id).first().user_name
+		user_name = ""
+		if obj.test_user_id:
+			user_id = obj.test_user_id
+			user_name = User.objects.filter(user_id=user_id).first().user_name
 		return user_name
 		
 		
@@ -59,11 +63,65 @@ class SonarSerializers(serializers.ModelSerializer):
 		fields = ["product_name", "project_name", "sonar_bugs", "sonar_holes", "year", "month", "day", "is_month"]
 
 	def get_product_name(self, obj):
-		product_id = obj.product_id
-		product_name = App.objects.filter(product_id=product_id).first().product_name
+		product_name = ""
+		if obj.product_id:
+			product_id = obj.product_id
+			product_name = App.objects.filter(product_id=product_id).first().product_name
 		return product_name
 	
 	def get_project_name(self, obj):
-		project_id = obj.project_id
-		project_name = Project.objects.filter(project_id=project_id).first().project_name
+		project_name = ""
+		if obj.project_id:
+			project_id = obj.project_id
+			project_name = Project.objects.filter(project_id=project_id).first().project_name
 		return project_name
+	
+
+class ServiceSerializers(serializers.ModelSerializer):
+	product_name = serializers.SerializerMethodField("get_product_name")
+	project_name = serializers.SerializerMethodField("get_project_name")
+	test_user_name = serializers.SerializerMethodField("get_test_user_name")
+	service_type = serializers.SerializerMethodField("get_service_type")
+	
+	service_type_map = {
+		1: "Gradle",
+		2: "Maven",
+		3: "Node",
+		4: "Python",
+		5: "Go",
+		0: "Others"
+	}
+	
+	class Meta:
+		model = Services
+		# fields = "__all__"
+		# exclude = ["create_time", "update_time"]
+		fields = ["id", "product_name", "project_name", "service_name", "service_type", "coder", "test_user_name"]
+	
+	def get_product_name(self, obj):
+		product_name = ""
+		if obj.product_id:
+			product_id = obj.product_id
+			product_name = App.objects.filter(product_id=product_id).first().product_name
+		return product_name
+	
+	def get_project_name(self, obj):
+		project_name = ""
+		if obj.project_id:
+			project_id = obj.project_id
+			project_name = Project.objects.filter(project_id=project_id).first().project_name
+		return project_name
+	
+	def get_test_user_name(self, obj):
+		user_name = ""
+		if obj.test_user_id:
+			user_id = obj.test_user_id
+			user_name = User.objects.filter(user_id=user_id).first().user_name
+		return user_name
+	
+	def get_service_type(self, obj):
+		service_type = ""
+		if obj.service_type:
+			service_type_num = obj.service_type
+			service_type = self.service_type_map.get(service_type_num)
+		return service_type
