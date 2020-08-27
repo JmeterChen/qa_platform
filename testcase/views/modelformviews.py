@@ -30,9 +30,9 @@ class CaseGet(View):
             if project_id:
                 search_dict['project_id'] = project_id
             if main_tasks:
-                queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks,is_delete=0).order_by('id')
+                queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks,is_delete=0).order_by('-id')
             if not main_tasks:
-                queryset = models.TestCase.objects.filter(**search_dict,is_delete=0).order_by('id')
+                queryset = models.TestCase.objects.filter(**search_dict,is_delete=0).order_by('-id')
             # 增加排序 修复分页器warning 增加main_tasks模糊查询
             #分页器
             ptr = Paginator(queryset, pageSize)
@@ -94,9 +94,13 @@ class CaseGet(View):
 
 class CaseAdd(View):
     def post(self,request):
+
         obj = CaseModelForm(json.loads(request.body.decode()))
+
         if obj.is_valid():
+
             ins = obj.save()
+
             return JsonResponse({
                 "code": 0,
                 "msg":'success',
