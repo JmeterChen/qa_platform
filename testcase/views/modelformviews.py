@@ -97,7 +97,6 @@ class CaseAdd(View):
         obj = CaseModelForm(json.loads(request.body.decode()))
         if obj.is_valid():
             ins = obj.save()
-            print(list(obj))
             return JsonResponse({
                 "code": 0,
                 "msg":'success',
@@ -141,7 +140,9 @@ class CaseDel(View):
     def get(self,request):
         if request.GET.get('id'):
             delete_id = request.GET.get('id')
-            models.TestCase.objects.filter(id=delete_id).update(is_delete=1)
+            operator = request.META.get('HTTP_OPERATOR')
+            print(operator)
+            models.TestCase.objects.filter(id=delete_id).update(is_delete=1,operator=operator)
             return JsonResponse({
                 "code": 0,
                 "msg":"sucess"
