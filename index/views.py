@@ -3,10 +3,10 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from rest_framework import response, serializers
-from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
 from mypro.models import *
+from rest_framework import response, serializers
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 import time
 
 
