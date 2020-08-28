@@ -195,6 +195,9 @@ class ProductView(APIView):
 class ProjectView(APIView):
 	def get(self, request, *args, **kwargs):
 		db_data = Project.objects.filter(is_delete=0).order_by("create_time")
+		req = request.GET
+		if req.get("product_id"):
+			db_data.filter(product_id=req.get("product_id"))
 		total = db_data.count()
 		paginator = GeneralPaginator()
 		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
@@ -379,6 +382,11 @@ class ServicesView(View):
 class ServicesViewApiView(APIView):
 	def get(self, request, *args, **kwargs):
 		db_data = Services.objects.filter(is_delete=0).order_by("-create_time")
+		req = request.GET
+		if req.get("product_id"):
+			db_data = db_data.filter(product_id=req.get("product_id"))
+		if req.get("project_id"):
+			db_data = db_data.filter(project_id=req.get("project_id"))
 		total = db_data.count()
 		# 创建分页对象实例
 		paginator = GeneralPaginator()
