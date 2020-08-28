@@ -55,7 +55,8 @@ class Iterable(models.Model):
 	end_time = models.DateTimeField('结束时间', null=False, default='1970-01-01')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
-	operator = models.CharField('操作人', null=False, max_length=20, default='')
+	year = models.IntegerField('统计数据所属年', default=2020, null=False)
+	month = models.IntegerField('统计数据所月份', default=1, null=False)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -124,6 +125,8 @@ class OnlineBug(models.Model):
 	end_time = models.DateTimeField('结束时间', null=False, default='1970-01-01')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	year = models.IntegerField('统计数据所属年', default=2020, null=False)
+	month = models.IntegerField('统计数据所月份', default=1, null=False)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
