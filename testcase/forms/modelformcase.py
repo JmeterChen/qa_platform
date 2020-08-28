@@ -4,7 +4,7 @@ from mypro import models
 
 #modelform验证
 class CaseModelForm(forms.ModelForm):
-
+    main_tasks = forms.CharField(required=False)
 
     class Meta:
         model = models.TestCase
@@ -13,7 +13,7 @@ class CaseModelForm(forms.ModelForm):
         #     "product_id",
         # )
 
-        exclude = ['is_delete','main_tasks']
+        exclude = ['is_delete']
 
 
 
