@@ -197,7 +197,7 @@ class ProjectView(APIView):
 		db_data = Project.objects.filter(is_delete=0).order_by("create_time")
 		req = request.GET
 		if req.get("product_id"):
-			db_data.filter(product_id=req.get("product_id"))
+			db_data = db_data.filter(product_id=req.get("product_id"))
 		total = db_data.count()
 		paginator = GeneralPaginator()
 		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
