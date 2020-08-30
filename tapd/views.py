@@ -240,19 +240,20 @@ class Tokens(APIView):
 				"errorDetail": check_data.errors
 			})
 		
-	def delete(self, request, *args, **kwargs):
-		req_data = json.loads(request.body)
-		app = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
-		if not app:
-			return JsonResponse({
-				"code": 90000,
-				"success": False,
-				"msg": "请确认选项是否存在！"
-			})
-		else:
-			app.delete()
-			return response.Response({
-				"code": 10000,
-				"success": True,
-				"msg": "删除成功！"
-			})
+	# delete 方法好像存在 bug 获取 token 列表 get 接口的时候也会触发这个接口
+	# def delete(self, request, *args, **kwargs):
+	# 	req_data = json.loads(request.body)
+	# 	app = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
+	# 	if not app:
+	# 		return JsonResponse({
+	# 			"code": 90000,
+	# 			"success": False,
+	# 			"msg": "请确认选项是否存在！"
+	# 		})
+	# 	else:
+	# 		app.delete()
+	# 		return response.Response({
+	# 			"code": 10000,
+	# 			"success": True,
+	# 			"msg": "删除成功！"
+	# 		})
