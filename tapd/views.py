@@ -194,6 +194,7 @@ class Tokens(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "创建成功！",
 				"data": req_data
 			})
 		else:
@@ -219,6 +220,7 @@ class Tokens(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "更新成功！",
 				"data": req_data
 			})
 		else:
@@ -235,12 +237,12 @@ class Tokens(APIView):
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": "请确认选项是否存在!"
+				"msg": "请确认选项是否存在！"
 			})
 		else:
 			app.delete()
 			return response.Response({
 				"code": 10000,
 				"success": True,
-				"msg": "token配置删除成功!"
+				"msg": "删除成功！"
 			})

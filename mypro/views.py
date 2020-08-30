@@ -136,6 +136,7 @@ class ProductView(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "创建成功！",
 				"data": req_data
 			})
 		else:
@@ -162,6 +163,7 @@ class ProductView(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "更新成功！",
 				"data": req_data
 			})
 		else:
@@ -180,7 +182,7 @@ class ProductView(APIView):
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": "请确认该产品线是否存在!"
+				"msg": "请确认该产品线是否存在！"
 			})
 		else:
 			db_data_one.is_delete = 1
@@ -188,7 +190,7 @@ class ProductView(APIView):
 			return response.Response({
 				"code": 10000,
 				"success": True,
-				"msg": "产品线删除成功!"
+				"msg": "删除成功！"
 			})
 
 
@@ -224,6 +226,7 @@ class ProjectView(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "创建成功！",
 				"data": req_data
 			})
 		else:
@@ -250,6 +253,7 @@ class ProjectView(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "更新成功！",
 				"data": req_data
 			})
 		else:
@@ -276,7 +280,7 @@ class ProjectView(APIView):
 			return response.Response({
 				"code": 10000,
 				"success": True,
-				"msg": "产品项目组成功!"
+				"msg": "删除成功！"
 			})
 
 
@@ -416,6 +420,7 @@ class ServicesViewApiView(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "创建成功！",
 				"data": req_data
 			})
 		else:
@@ -442,6 +447,7 @@ class ServicesViewApiView(APIView):
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
+				"msg": "更新成功！",
 				"data": req_data
 			})
 		else:
@@ -468,7 +474,7 @@ class ServicesViewApiView(APIView):
 			return response.Response({
 				"code": 10000,
 				"success": True,
-				"msg": "删除服务成功!"
+				"msg": "删除成功!"
 			})
 
 
