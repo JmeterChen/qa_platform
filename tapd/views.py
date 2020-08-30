@@ -188,9 +188,9 @@ class Tokens(APIView):
 	def post(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
 		req_data["robotToken"] = url_NF + req_data.get("robotToken").split('robot/send?')[-1]
-		check_token = TokenSerializers(data=req_data)
-		if check_token.is_valid():
-			check_token.save()
+		check_data = TokenSerializers(data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -198,10 +198,15 @@ class Tokens(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": check_token.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 		
 	def put(self, request, *args, **kwargs):
@@ -214,9 +219,9 @@ class Tokens(APIView):
 				"success": False,
 				"msg": "请确认选项是否存在！"
 			})
-		check_token = TokenSerializers(instance=token, data=req_data)
-		if check_token.is_valid():
-			check_token.save()
+		check_data = TokenSerializers(instance=token, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -224,10 +229,15 @@ class Tokens(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": check_token.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 		
 	def delete(self, request, *args, **kwargs):

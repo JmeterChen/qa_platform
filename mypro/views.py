@@ -130,9 +130,9 @@ class ProductView(APIView):
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = None if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		req_data["product_id"] = str(round(time.time()))
-		app = AppSerializers(data=req_data)
-		if app.is_valid():
-			app.save()
+		check_data = AppSerializers(data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -140,10 +140,15 @@ class ProductView(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": app.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 	
 	def put(self, request, *args, **kwargs):
@@ -157,9 +162,9 @@ class ProductView(APIView):
 				"success": False,
 				"msg": "请确认该产品线是否存在！"
 			})
-		check_app = AppSerializers(instance=db_data, data=req_data)
-		if check_app.is_valid():
-			check_app.save()
+		check_data = AppSerializers(instance=db_data, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -167,10 +172,15 @@ class ProductView(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": check_app.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 	
 	def delete(self, request, *args, **kwargs):
@@ -220,9 +230,9 @@ class ProjectView(APIView):
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = None if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		req_data["project_id"] = str(round(time.time()))[::-1][:-3]
-		app = ProjectSerializers(data=req_data)
-		if app.is_valid():
-			app.save()
+		check_data = ProjectSerializers(data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -230,10 +240,15 @@ class ProjectView(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": app.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 	
 	def put(self, request, *args, **kwargs):
@@ -247,9 +262,9 @@ class ProjectView(APIView):
 				"success": False,
 				"msg": "请确认该项目组是否存在！"
 			})
-		check_app = ProjectSerializers(instance=db_data, data=req_data)
-		if check_app.is_valid():
-			check_app.save()
+		check_data = ProjectSerializers(instance=db_data, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -257,10 +272,15 @@ class ProjectView(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": check_app.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 	
 	def delete(self, request, *args, **kwargs):
@@ -409,13 +429,11 @@ class ServicesViewApiView(APIView):
 	
 	def post(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
-		print(req_data)
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = None if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
-		print(req_data)
-		app = ServiceSerializers(data=req_data)
-		if app.is_valid():
-			data = app.save()
+		check_data = ServiceSerializers(data=req_data)
+		if check_data.is_valid():
+			data = check_data.save()
 			req_data["id"] = data.id
 			return JsonResponse({
 				"code": 10000,
@@ -424,10 +442,15 @@ class ServicesViewApiView(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": app.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 	
 	def put(self, request, *args, **kwargs):
@@ -441,9 +464,9 @@ class ServicesViewApiView(APIView):
 				"success": False,
 				"msg": "请确认该服务是否存在！"
 			})
-		check_app = ServiceSerializers(instance=app, data=req_data)
-		if check_app.is_valid():
-			check_app.save()
+		check_data = ServiceSerializers(instance=app, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
@@ -451,10 +474,15 @@ class ServicesViewApiView(APIView):
 				"data": req_data
 			})
 		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
-				"msg": check_app.errors
+				"msg": msg,
+				"errorDetail": check_data.errors
 			})
 	
 	def delete(self, request, *args, **kwargs):
