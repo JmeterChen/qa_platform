@@ -99,10 +99,10 @@ def del_token(request):
 	projectId = del_data.get("projectId")
 	try:
 		ProjectToken.objects.filter(projectId=projectId).delete()
-		res = {"code": 200, 'msg': "删除数据成功"}
+		res = {"code": 200, "success": True, 'msg': "删除数据成功"}
 		logger.debug(f"数据删除状态         :✅")
 	except Exception as e:
-		res = {"code": 99999, 'msg': f"删除数据出现异常：{e}"}
+		res = {"code": 99999, "success": False,  'msg': f"删除数据出现异常：{e}"}
 		logger.debug(f"数据删除状态         :❌")
 	return JsonResponse(res)
 	
@@ -241,19 +241,19 @@ class Tokens(APIView):
 			})
 		
 	# delete 方法好像存在 bug 获取 token 列表 get 接口的时候也会触发这个接口
-	# def delete(self, request, *args, **kwargs):
-	# 	req_data = json.loads(request.body)
-	# 	app = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
-	# 	if not app:
-	# 		return JsonResponse({
-	# 			"code": 90000,
-	# 			"success": False,
-	# 			"msg": "请确认选项是否存在！"
-	# 		})
-	# 	else:
-	# 		app.delete()
-	# 		return response.Response({
-	# 			"code": 10000,
-	# 			"success": True,
-	# 			"msg": "删除成功！"
-	# 		})
+	def delete(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		app = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
+		if not app:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认选项是否存在！"
+			})
+		else:
+			app.delete()
+			return response.Response({
+				"code": 10000,
+				"success": True,
+				"msg": "删除成功！"
+			})
