@@ -242,7 +242,7 @@ class Tokens(APIView):
 		
 	# delete 方法好像存在 bug 获取 token 列表 get 接口的时候也会触发这个接口
 	def delete(self, request, *args, **kwargs):
-		req_data = json.loads(request.body)
+		req_data = request.GET
 		app = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
 		if not app:
 			return JsonResponse({
