@@ -433,7 +433,7 @@ class ServicesViewApiView(APIView):
 		req_data["operator"] = "tester" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		check_data = ServiceSerializers(data=req_data)
 		if check_data.is_valid():
-			data = check_data.save()
+			data = check_data.save(**req_data)
 			req_data["id"] = data.id
 			return JsonResponse({
 				"code": 10000,
