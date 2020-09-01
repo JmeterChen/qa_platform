@@ -100,7 +100,8 @@ class ServiceSerializers(serializers.ModelSerializer):
 		model = Services
 		# fields = "__all__"
 		# exclude = ["create_time", "update_time"]
-		fields = ["id", "product_name", "project_name", "service_name", "service_type", "coder", "test_user_name", "operator"]
+		fields = ["id", "product_name", "product_id",  "project_name", "project_id",  "service_name", "service_type",
+		          "coder", "test_user_id", "test_user_name", "operator"]
 	
 	def get_product_name(self, obj):
 		product_name = ""
