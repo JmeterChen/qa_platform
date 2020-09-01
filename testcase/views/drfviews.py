@@ -89,16 +89,22 @@ class CaseGet(APIView):
         return response.Response(ret)
 
 
-class CaseAdd(ModelViewSet):
-    queryset = models.TestCase.objects.all()
-    serializer_class = CaseSerializer
+# class CaseAdd(ModelViewSet):
+#     queryset = models.TestCase.objects.all()
+#     serializer_class = CaseSerializer
 
-# class Case(APIView):
-#     def post(self,request,*args,**kwargs):
-#         ser = CaseSerializer(data=request.data)
-#         if ser.is_valid():
-#             ser.save()
-#             return response.Response(ser.data)
-#         else:
-#             return response.Response(ser.errors)
+
+class CaseAdd(APIView):
+
+    def post(self,request,*args,**kwargs):
+        #header增加operator字段
+        HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+        if HTTP_OPERATOR:
+            request.data['operator'] = HTTP_OPERATOR
+        ser = CaseSerializer(data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return response.Response(ser.data)
+        else:
+            return response.Response(ser.errors)
 
