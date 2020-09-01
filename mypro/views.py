@@ -411,6 +411,10 @@ class ServicesViewApiView(APIView):
 			db_data = db_data.filter(product_id=req.get("product_id"))
 		if req.get("project_id"):
 			db_data = db_data.filter(project_id=req.get("project_id"))
+		if req.get("service_type"):
+			db_data = db_data.filter(service_type=req.get("service_type"))
+		if req.get("test_user_id"):
+			db_data = db_data.filter(test_user_id=req.get("test_user_id"))
 		total = db_data.count()
 		# 创建分页对象实例
 		paginator = GeneralPaginator()
