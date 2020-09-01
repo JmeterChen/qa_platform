@@ -34,7 +34,7 @@ app.conf.update(
         },
 	    'sonar-report_31': {
 		    'task': 'mypro.tasks.saveJenkinsData',
-		    'schedule': crontab(month_of_year="1,3,5,7,8,10,12", day_of_month=26, hour=23, minute=30),
+		    'schedule': crontab(month_of_year="1,3,5,7,8,10,12", day_of_month=31, hour=23, minute=30),
 		    "args": (1,)
 	    },
 	    'sonar-report_30': {

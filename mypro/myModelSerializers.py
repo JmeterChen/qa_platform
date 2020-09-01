@@ -48,7 +48,8 @@ class ProjectSerializers(serializers.ModelSerializer):
 		user_name = ""
 		if obj.test_user_id:
 			user_id = obj.test_user_id
-			user_name = User.objects.filter(user_id=user_id).first().user_name
+			user_name = User.objects.filter(user_id=user_id).first().user_name if User.objects.filter(
+				user_id=user_id).first() else ""
 		return user_name
 		
 		
@@ -116,7 +117,8 @@ class ServiceSerializers(serializers.ModelSerializer):
 		user_name = ""
 		if obj.test_user_id:
 			user_id = obj.test_user_id
-			user_name = User.objects.filter(user_id=user_id).first().user_name
+			user_name = User.objects.filter(user_id=user_id).first().user_name if User.objects.filter(
+				user_id=user_id).first() else ""
 		return user_name
 	
 	def get_service_type(self, obj):
