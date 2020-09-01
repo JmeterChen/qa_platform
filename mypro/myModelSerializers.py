@@ -41,7 +41,8 @@ class ProjectSerializers(serializers.ModelSerializer):
 		product_name = ""
 		if obj.product_id:
 			product_id = obj.product_id
-			product_name = App.objects.filter(product_id=product_id).first().product_name
+			product_name = App.objects.filter(product_id=product_id).first().product_name if App.objects.filter(
+				product_id=product_id).first() else ""
 		return product_name
 	
 	def get_test_user_name(self, obj):
@@ -67,14 +68,16 @@ class SonarSerializers(serializers.ModelSerializer):
 		product_name = ""
 		if obj.product_id:
 			product_id = obj.product_id
-			product_name = App.objects.filter(product_id=product_id).first().product_name
+			product_name = App.objects.filter(product_id=product_id).first().product_name if App.objects.filter(
+				product_id=product_id).first() else ""
 		return product_name
 	
 	def get_project_name(self, obj):
 		project_name = ""
 		if obj.project_id:
 			project_id = obj.project_id
-			project_name = Project.objects.filter(project_id=project_id).first().project_name
+			project_name = Project.objects.filter(project_id=project_id).first().project_name if Project.objects.filter(
+				project_id=project_id).first() else ""
 		return project_name
 	
 
@@ -103,14 +106,16 @@ class ServiceSerializers(serializers.ModelSerializer):
 		product_name = ""
 		if obj.product_id:
 			product_id = obj.product_id
-			product_name = App.objects.filter(product_id=product_id).first().product_name
+			product_name = App.objects.filter(product_id=product_id).first().product_name if App.objects.filter(
+				product_id=product_id).first() else ""
 		return product_name
 	
 	def get_project_name(self, obj):
 		project_name = ""
 		if obj.project_id:
 			project_id = obj.project_id
-			project_name = Project.objects.filter(project_id=project_id).first().project_name
+			project_name = Project.objects.filter(project_id=project_id).first().project_name if Project.objects.filter(
+				project_id=project_id).first() else ""
 		return project_name
 	
 	def get_test_user_name(self, obj):
