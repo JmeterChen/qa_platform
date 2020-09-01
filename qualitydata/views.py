@@ -6,7 +6,6 @@ from django.core.paginator import Paginator
 import time
 import datetime
 from django.db.models import Sum
-import calendar
 
 default_pageNo = 1
 default_pageSize = 10
@@ -305,13 +304,13 @@ class OnlineBugView(View):
                                                                start_time=start_time, end_time=end_time,
                                                                op_user_name=op_user_name,
                                                                update_time=time, year=year, month=month)
-                        res = {"code": 20000, "success": True, "msg": "编辑成功！", "data": req_data}
+                        res = {"code": 200, "success": True, "msg": "编辑成功！", "data": req_data}
                     except Exception as e:
-                        res = {"code": 10014, "success": False, "msg": "保存失败！", "data": e}
+                        res = {"code": 9999, "success": False, "msg": "保存失败！", "data": e}
                 else:
-                    res = {"code": 10014, "success": False, "msg": "缺少必填参数！", "data": ""}
+                    res = {"code": 10003, "success": False, "msg": "缺少必填参数！", "data": ""}
             else:
-                res = {"code": 10014, "success": False, "msg": "数据库不存在此记录！", "data": ""}
+                res = {"code": 9999, "success": False, "msg": "数据库不存在此记录！", "data": ""}
         else:
-            res = {"code": 10014, "success": False, "msg": "请求体为空！", "data": ""}
+            res = {"code": 10003, "success": False, "msg": "请求体为空！", "data": ""}
         return JsonResponse(res, json_dumps_params={'ensure_ascii': False}, safe=False)
