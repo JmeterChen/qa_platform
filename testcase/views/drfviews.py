@@ -57,37 +57,25 @@ class CaseGet(APIView):
             search_dict['product_id'] = product_id
         if project_id:
             search_dict['project_id'] = project_id
-        try:
-            if main_tasks:
-                queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks,
+        if main_tasks:
+            queryset = models.TestCase.objects.filter(**search_dict, main_tasks__contains=main_tasks,
                                                           is_delete=0).order_by('-id')
-            if not main_tasks:
-                queryset = models.TestCase.objects.filter(**search_dict, is_delete=0).order_by('-id')
-            pg = MyPageNumberPagination()
-            # 判断传入页面和默认值
-            if pageNo == None:
-                pageNo = 1
-            if pageSize == None:
-                pageSize = pg.page_size
-            pg_cases = pg.paginate_queryset(queryset=queryset,request=request,view=self)
-            ser = CaseSerializer(instance=pg_cases,many=True)
-
-            ret = {'code':0,'msg':'successs'}
-
-            if not queryset.exists():
-                raise ExistsErrors()
-            ret['pageNo']=pageNo
-            ret['pageSize'] = pageSize
-            ret['total'] = pg.page.paginator.count
-            ret['data']=ser.data
-        except ExistsErrors as e:
-            response['code'] = 1001
-            response['data'] = '查询无结果'
-        except Exception as e:
-            response['code'] = 1002
-            response['data'] = '请稍后再试'
+        if not main_tasks:
+            queryset = models.TestCase.objects.filter(**search_dict, is_delete=0).order_by('-id')
+        pg = MyPageNumberPagination()
+        # 判断传入页面和默认值
+        if pageNo == None:
+            pageNo = 1
+        if pageSize == None:
+            pageSize = pg.page_size
+        pg_cases = pg.paginate_queryset(queryset=queryset,request=request,view=self)
+        ser = CaseSerializer(instance=pg_cases,many=True)
+        ret = {'code':0,'msg':'successs'}
+        ret['pageNo']=pageNo
+        ret['pageSize'] = pageSize
+        ret['total'] = pg.page.paginator.count
+        ret['data']=ser.data
         return response.Response(ret)
-
 
 # class CaseAdd(ModelViewSet):
 #     queryset = models.TestCase.objects.all()
@@ -99,12 +87,17 @@ class CaseAdd(APIView):
     def post(self,request,*args,**kwargs):
         #header增加operator字段
         HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+
         if HTTP_OPERATOR:
             request.data['operator'] = HTTP_OPERATOR
-        ser = CaseSerializer(data=request.data)
-        if ser.is_valid():
-            ser.save()
-            return response.Response(ser.data)
-        else:
-            return response.Response(ser.errors)
+            ser = CaseSerializer(data=request.data)
+            if ser.is_valid():
+                try:
+                    ser.save()
+                except Exception as e:
+                    print(e)
+                return response.Response(ser.data)
+            else:
+                return response.Response(ser.errors)
+
 
