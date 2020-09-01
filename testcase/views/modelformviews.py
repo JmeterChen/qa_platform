@@ -94,13 +94,13 @@ class CaseGet(View):
 
 class CaseAdd(View):
     def post(self,request):
-
-        obj = CaseModelForm(json.loads(request.body.decode()))
+        HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+        ret = json.loads(request.body.decode())
+        ret['operator'] = HTTP_OPERATOR
+        obj = CaseModelForm(ret)
 
         if obj.is_valid():
-
             ins = obj.save()
-
             return JsonResponse({
                 "code": 0,
                 "msg":'success',
@@ -115,8 +115,10 @@ class CaseAdd(View):
 
 class CaseUpdate(View):
     def put(self,request):
-        update_set = json.loads(request.body.decode())
-        update_id = update_set.get('id')
+        HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+        ret = json.loads(request.body.decode())
+        ret['operator'] = HTTP_OPERATOR
+        update_id = ret.get('id')
         if update_id:
             instance = models.TestCase.objects.filter(pk=update_id).first()
             if not instance:
@@ -125,7 +127,7 @@ class CaseUpdate(View):
                     "data": '数据不存在'
                 })
             # 更新数据
-            form = CaseModelForm(update_set, instance=instance)
+            form = CaseModelForm(ret, instance=instance)
             if form.is_valid():
                 obj = form.save()
                 return JsonResponse({
@@ -145,7 +147,6 @@ class CaseDel(View):
         if request.GET.get('id'):
             delete_id = request.GET.get('id')
             operator = request.META.get('HTTP_OPERATOR')
-            print(operator)
             models.TestCase.objects.filter(id=delete_id).update(is_delete=1,operator=operator)
             return JsonResponse({
                 "code": 0,
