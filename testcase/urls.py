@@ -11,7 +11,8 @@ urlpatterns = [
 	path('del_case/', modelformviews.CaseDel.as_view()),
 
 	# path('a_case/', drfviews.Case.as_view({'get':'list','post':'create'})),
-	path('a_case/', drfviews.CaseAdd.as_view({'post':'create'})),
+	# path('a_case/', drfviews.CaseAdd.as_view({'post':'create'})),
+	path('a_case/', drfviews.CaseAdd.as_view()),
 	path('g_case/', drfviews.CaseGet.as_view()),
 	# path('u_case/', drfviews.CaseUpdate.as_view()),
 	# path('d_case/', drfviews.CaseDel.as_view()),
