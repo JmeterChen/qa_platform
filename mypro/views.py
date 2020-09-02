@@ -184,7 +184,8 @@ class ProductView(APIView):
 			})
 	
 	def delete(self, request, *args, **kwargs):
-		req_data = json.loads(request.body)
+		# req_data = json.loads(request.body)
+		req_data = request.GET
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "tester" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		db_data_one = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
@@ -284,7 +285,8 @@ class ProjectView(APIView):
 			})
 	
 	def delete(self, request, *args, **kwargs):
-		req_data = json.loads(request.body)
+		# req_data = json.loads(request.body)
+		req_data = request.GET
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "tester" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		db_data = Project.objects.filter(pk=req_data.get("project_id"), is_delete=0).first()
@@ -363,7 +365,7 @@ class ServicesView(View):
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "tester" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		db_data = Services.objects.filter(is_delete=0)
-		service_id, service_name, product_id, project_id = req_data.get("service_id"), req_data.get("service_name"), req_data.get("product_id"), req_data.get("project_id")
+		service_id, service_name, product_id, project_id = req_data.get("id"), req_data.get("service_name"), req_data.get("product_id"), req_data.get("project_id")
 		
 		if not service_id:
 			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
@@ -385,8 +387,9 @@ class ServicesView(View):
 		return JsonResponse(res)
 			
 	def delete(self, request, *args, **kwargs):
-		req_data = json.loads(request.body)
-		service_id = req_data.get("service_id")
+		# req_data = json.loads(request.body)
+		req_data = request.GET
+		service_id = req_data.get("id")
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "tester" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		db_data = Services.objects.filter(is_delete=0)
@@ -490,7 +493,8 @@ class ServicesViewApiView(APIView):
 			})
 	
 	def delete(self, request, *args, **kwargs):
-		req_data = json.loads(request.body)
+		# req_data = json.loads(request.body)
+		req_data = request.GET
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "tester" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
 		app = Services.objects.filter(pk=req_data.get("id"), is_delete=0).first()
