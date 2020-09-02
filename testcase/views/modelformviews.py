@@ -5,9 +5,10 @@ from testcase.forms.modelformcase import CaseModelForm
 from django.shortcuts import HttpResponse,render
 
 from django.core.paginator import Paginator
-
+from datetime import datetime
 from django.core import serializers
 import json
+import urllib.parse
 
 
 class CaseGet(View):
@@ -94,9 +95,10 @@ class CaseGet(View):
 
 class CaseAdd(View):
     def post(self,request):
-        HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+        HTTP_OPERATOR = urllib.parse.unquote(request.META.get('HTTP_OPERATOR'))
         ret = json.loads(request.body.decode())
         ret['operator'] = HTTP_OPERATOR
+
         obj = CaseModelForm(ret)
 
         if obj.is_valid():
@@ -115,10 +117,11 @@ class CaseAdd(View):
 
 class CaseUpdate(View):
     def put(self,request):
-        HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+        HTTP_OPERATOR = urllib.parse.unquote(request.META.get('HTTP_OPERATOR'))
         ret = json.loads(request.body.decode())
         ret['operator'] = HTTP_OPERATOR
         update_id = ret.get('id')
+
         if update_id:
             instance = models.TestCase.objects.filter(pk=update_id).first()
             if not instance:
@@ -146,8 +149,9 @@ class CaseDel(View):
     def get(self,request):
         if request.GET.get('id'):
             delete_id = request.GET.get('id')
-            operator = request.META.get('HTTP_OPERATOR')
-            models.TestCase.objects.filter(id=delete_id).update(is_delete=1,operator=operator)
+            HTTP_OPERATOR = urllib.parse.unquote(request.META.get('HTTP_OPERATOR'))
+            models.TestCase.objects.filter(id=delete_id).update(is_delete=1,operator=HTTP_OPERATOR,update_time=datetime.now())
+
             return JsonResponse({
                 "code": 0,
                 "msg":"sucess"
