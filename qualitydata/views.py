@@ -1,12 +1,14 @@
 from django.views import View
 from mypro.models import Iterable, OnlineBug, App, Project
-from django.http import JsonResponse
-import json
+from .common.common_function import get_month, get_year
 from django.core.paginator import Paginator
-import time
-import datetime
+from django.http import JsonResponse
 from django.db.models import Sum
+import datetime
 import calendar
+import time
+import json
+
 
 default_pageNo = 1
 default_pageSize = 10
@@ -96,20 +98,13 @@ class IterableView(View):
                 product_id_values = App.objects.filter(product_id=product_id).first()
                 project_id_values = Project.objects.filter(product_id=product_id, project_id=project_id)
                 if project_id_values:
-                    pre_date = datetime.datetime.strptime(start_time, '%Y-%m-%d').date()
-                    last_date = datetime.datetime.strptime(end_time, '%Y-%m-%d').date()
-                    if (calendar.monthrange(pre_date.year, pre_date.month)[1])-pre_date.day >= last_date.day:
-                        year = pre_date.year
-                        month = pre_date.month
-                    else:
-                        year = last_date.year
-                        month = last_date.month
                     try:
                         db_data = {"product_id": product_id, "project_id": project_id,
                                    "publish_num": publish_num, "cases_num": cases_num, "end_time": end_time,
                                    "op_user_name": op_user_name,
                                    "start_time": start_time, "bugs_num": bugs_num, "test_user_id": test_user_id,
-                                   "create_time": time, "update_time": time, 'year':year, 'month':month, "is_delete": 0}
+                                   "create_time": time, "update_time": time, 'year': get_year(start_time, end_time),
+                                   'month': get_month(start_time, end_time), "is_delete": 0}
                         data = Iterable.objects.create(**db_data)
                         data.save()
                         res = {"code": 200, "success": True, "msg": "添加成功！", "data": db_data}
@@ -129,27 +124,21 @@ class IterableView(View):
         req_data = json.loads(request.body)
         op_user_name = request.META.get("HTTP_NAME", '')
         if req_data:
-            id, product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, start_time, end_time = req_data.get("id"),req_data.get(
-                "product_id"), req_data.get("project_id"), req_data.get(
-                "publish_num"), req_data.get(
-                "cases_num"), req_data.get("bugs_num"), req_data.get(
+            id, product_id, project_id, publish_num, cases_num, bugs_num, test_user_id, start_time, end_time = req_data.get(
+                "id"), req_data.get("product_id"), req_data.get("project_id"), req_data.get(
+                "publish_num"), req_data.get("cases_num"), req_data.get("bugs_num"), req_data.get(
                 "test_user_id"), req_data.get("start_time"), req_data.get("end_time")
             id_data = Iterable.objects.filter(is_delete=0, id=id)
             if id_data:
                 if product_id and project_id and str(publish_num) and str(cases_num) and str(bugs_num) and test_user_id and start_time and end_time and op_user_name:
-                    pre_date = datetime.datetime.strptime(start_time, '%Y-%m-%d').date()
-                    last_date = datetime.datetime.strptime(end_time, '%Y-%m-%d').date()
-                    if (calendar.monthrange(pre_date.year, pre_date.month)[1])-pre_date.day >= last_date.day:
-                        year = pre_date.year
-                        month = pre_date.month
-                    else:
-                        year = last_date.year
-                        month = last_date.month
                     try:
                         Iterable.objects.filter(id=id).update(product_id=product_id, project_id=project_id,
-                                                            publish_num=publish_num, cases_num=cases_num, bugs_num=bugs_num,
-                                                            test_user_id=test_user_id, start_time=start_time, end_time=end_time,
-                                                            op_user_name=op_user_name, update_time=time, year=year,month=month)
+                                                              publish_num=publish_num, cases_num=cases_num,
+                                                              bugs_num=bugs_num, test_user_id=test_user_id,
+                                                              start_time=start_time, end_time=end_time,
+                                                              op_user_name=op_user_name, update_time=time,
+                                                              year=get_year(start_time, end_time),
+                                                              month=get_month(start_time, end_time))
                         res = {"code": 200, "success": True, "msg": "编辑成功！", "data": req_data}
                     except Exception as e:
                         res = {"code": 9999, "success": False, "msg": "保存失败！", "data": e}
@@ -249,20 +238,13 @@ class OnlineBugView(View):
                 product_id_values = App.objects.filter(product_id=product_id).first()
                 project_id_values = Project.objects.filter(product_id=product_id, project_id=project_id)
                 if project_id_values:
-                    pre_date = datetime.datetime.strptime(start_time, '%Y-%m-%d').date()
-                    last_date = datetime.datetime.strptime(end_time, '%Y-%m-%d').date()
-                    if (calendar.monthrange(pre_date.year, pre_date.month)[1]) - pre_date.day >= last_date.day:
-                        year = pre_date.year
-                        month = pre_date.month
-                    else:
-                        year = last_date.year
-                        month = last_date.month
                     try:
                         db_data = {"product_id": product_id, "project_id": project_id,
                                    "back_bugs": back_bugs, "online_bugs": online_bugs, "end_time": end_time,
-                                   "op_user_name": op_user_name,
-                                   "start_time": start_time, "online_accidents": online_accidents, "test_user_id": test_user_id,
-                                   "create_time": time, "update_time": time, 'year': year, 'month':month, "is_delete": 0}
+                                   "op_user_name": op_user_name, "start_time": start_time,
+                                   "online_accidents": online_accidents, "test_user_id": test_user_id,
+                                   "create_time": time, "update_time": time, 'year': get_year(start_time, end_time),
+                                   'month': get_month(start_time, end_time), "is_delete": 0}
                         data = OnlineBug.objects.create(**db_data)
                         data.save()
                         res = {"code": 200, "success": True, "msg": "添加成功！", "data": db_data}
@@ -289,14 +271,6 @@ class OnlineBugView(View):
             id_data = OnlineBug.objects.filter(is_delete=0, id=id)
             if id_data:
                 if product_id and project_id and str(back_bugs) and str(online_bugs) and str(online_accidents) and test_user_id and start_time and end_time:
-                    pre_date = datetime.datetime.strptime(start_time, '%Y-%m-%d').date()
-                    last_date = datetime.datetime.strptime(end_time, '%Y-%m-%d').date()
-                    if (calendar.monthrange(pre_date.year, pre_date.month)[1]) - pre_date.day >= last_date.day:
-                        year = pre_date.year
-                        month = pre_date.month
-                    else:
-                        year = last_date.year
-                        month = last_date.month
                     try:
                         OnlineBug.objects.filter(id=id).update(product_id=product_id, project_id=project_id,
                                                                back_bugs=back_bugs, online_bugs=online_bugs,
@@ -304,7 +278,8 @@ class OnlineBugView(View):
                                                                test_user_id=test_user_id,
                                                                start_time=start_time, end_time=end_time,
                                                                op_user_name=op_user_name,
-                                                               update_time=time, year=year, month=month)
+                                                               update_time=time, year=get_year(start_time, end_time),
+                                                               month=get_month(start_time, end_time), )
                         res = {"code": 200, "success": True, "msg": "编辑成功！", "data": req_data}
                     except Exception as e:
                         res = {"code": 9999, "success": False, "msg": "保存失败！", "data": e}
