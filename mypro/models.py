@@ -22,6 +22,7 @@ class App(models.Model):
 	product_name = models.CharField('产品线名称', null=False, unique=True, max_length=20, default='')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -35,6 +36,7 @@ class Project(models.Model):
 	test_user_id = models.CharField(null=False, max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -42,18 +44,19 @@ class Project(models.Model):
 
 
 class Iterable(models.Model):
-	id = models.IntegerField(primary_key=True)
 	project_id = models.CharField(null=False, max_length=20)
 	product_id = models.CharField('所属产品线', null=False, max_length=20)
 	publish_num = models.IntegerField('发版个数', default=0, null=False)
 	cases_num = models.IntegerField('用例条数', default=0, null=False)
 	bugs_num = models.IntegerField('用例条数', default=0, null=False)
-	test_user_id = models.CharField(null=False, max_length=20)
-	week = models.IntegerField(null=False, default=1)
-	month = models.IntegerField(null=False, default=1)
-	year = models.IntegerField(null=False, default=1970)
+	test_user_id = models.CharField('测试人员ID', null=False, max_length=20)
+	op_user_name = models.CharField('操作人', null=False, max_length=20, default='')
+	start_time = models.DateField('开始时间', null=False, default='1970-01-01')
+	end_time = models.DateField('结束时间', null=False, default='1970-01-01')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	year = models.IntegerField('统计数据所属年', default=2020, null=False)
+	month = models.IntegerField('统计数据所月份', default=1, null=False)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -63,10 +66,11 @@ class Iterable(models.Model):
 class User(models.Model):
 	user_id = models.CharField(primary_key=True, null=False, max_length=20)
 	user_name = models.CharField(null=False, max_length=20)
-	email = models.EmailField(null=False, unique=True, max_length=20)
+	email = models.EmailField(null=False, unique=True, max_length=50)
 	phone_number = models.CharField(null=False, unique=True, max_length=15)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -85,6 +89,7 @@ class Devices(models.Model):
 	remark = models.CharField(max_length=100)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -100,6 +105,8 @@ class SonarReport(models.Model):
 	week = models.IntegerField(null=False, default=1)
 	month = models.IntegerField(null=False, default=1)
 	year = models.IntegerField(null=False, default=1970)
+	day = models.IntegerField(null=False, default=1)
+	is_month = models.IntegerField('月度数据', choices=((0, '否'), (1, '是')), default=0)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
 
@@ -110,13 +117,17 @@ class SonarReport(models.Model):
 class OnlineBug(models.Model):
 	product_id = models.CharField(null=False, max_length=20)
 	project_id = models.CharField(null=False,  max_length=20)
-	back_bugs = models.IntegerField(default=0)
-	online_bugs = models.IntegerField(default=0)
-	online_accidents = models.IntegerField(default=0)
-	week = models.IntegerField(null=False, default=1)
-	month = models.IntegerField(null=False, default=1)
+	back_bugs = models.IntegerField('反馈问题数', default=0)
+	online_bugs = models.IntegerField('线上问题数', default=0)
+	online_accidents = models.IntegerField('线上事故数', default=0)
+	test_user_id = models.CharField('测试人员ID', null=False, max_length=20, default='')
+	op_user_name = models.CharField('操作人', null=False, max_length=20, default='')
+	start_time = models.DateField('开始时间', null=False, default='1970-01-01')
+	end_time = models.DateField('结束时间', null=False, default='1970-01-01')
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	year = models.IntegerField('统计数据所属年', default=2020, null=False)
+	month = models.IntegerField('统计数据所月份', default=1, null=False)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -126,13 +137,14 @@ class OnlineBug(models.Model):
 class TestCase(models.Model):
 	product_id = models.CharField(null=False, max_length=20)
 	project_id = models.CharField(null=False,  max_length=20)
-	iterable_name = models.CharField(null=False, max_length=20)
-	main_tasks = models.CharField(null=False, max_length=20)
-	test_cases_url = models.URLField(null=False, unique=True, max_length=200)
+	iterable_name = models.CharField(null=False, max_length=50)
+	main_tasks = models.CharField(null=False, max_length=100)
+	test_cases_url = models.URLField(null=False, max_length=200)
 	# cases_num = models.IntegerField('用例条数', default=0)
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -142,12 +154,13 @@ class TestCase(models.Model):
 class TestReport(models.Model):
 	product_id = models.CharField(null=False, max_length=20)
 	project_id = models.CharField(null=False, max_length=20)
-	iterable_name = models.CharField(null=False, max_length=20)
-	mainTasks = models.CharField(null=False, max_length=20)
+	iterable_name = models.CharField(null=False, max_length=50)
+	mainTasks = models.CharField(null=False, max_length=100)
 	test_report_url = models.URLField(null=False,  max_length=200)
 	test_user = models.CharField(max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:
@@ -165,6 +178,7 @@ class ProblemPlus(models.Model):
 	case_info_url = models.CharField(null=False, max_length=200)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 
 	class Meta:
 		db_table = 'qa_problem_plus'
@@ -177,7 +191,7 @@ class Services(models.Model):
 	                (4, 'Python'),
 	                (5, 'Go'),
 	                (0, 'Others'))
-	service_name = models.CharField(null=False, max_length=20)
+	service_name = models.CharField(null=False, max_length=100)
 	service_type = models.IntegerField('项目类型', choices=type_choices, default=0)
 	product_id = models.CharField(null=False, max_length=20)
 	project_id = models.CharField(null=False, max_length=20)
@@ -185,6 +199,7 @@ class Services(models.Model):
 	test_user_id = models.CharField(null=False, max_length=20)
 	create_time = models.DateTimeField('创建时间', auto_now_add=True)
 	update_time = models.DateTimeField('编辑时间', auto_now=True)
+	operator = models.CharField('操作人', null=False, max_length=20)
 	is_delete = models.IntegerField('删除状态', choices=((0, '否'), (1, '是')), default=0)
 
 	class Meta:

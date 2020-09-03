@@ -1,6 +1,8 @@
-Django==2.1.4
-PyMySQL==0.9.3
-jsonpath==0.82
 requests==2.22.0
+Django==2.1.4
+PyMySQL==0.10.0
+jsonpath==0.82
 djangorestframework==3.11.0
 django-cors-headers==3.4.0
+celery==4.4.2
+redis==3.5.3

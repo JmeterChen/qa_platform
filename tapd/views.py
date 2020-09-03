@@ -7,10 +7,12 @@ from django.db.models import Q
 
 from tapd.common.dingDing import *
 from datetime import datetime
-# from tapd.common.readLogger import ReadLogger
 from tapd import logger
-from django.core.paginator import Paginator
-
+from rest_framework import response, serializers
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
+from mypro.models import *
+import time
 # Create your views here.
 
 url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
@@ -97,10 +99,10 @@ def del_token(request):
 	projectId = del_data.get("projectId")
 	try:
 		ProjectToken.objects.filter(projectId=projectId).delete()
-		res = {"code": 200, 'msg': "删除数据成功"}
+		res = {"code": 200, "success": True, 'msg': "删除数据成功"}
 		logger.debug(f"数据删除状态         :✅")
 	except Exception as e:
-		res = {"code": 99999, 'msg': f"删除数据出现异常：{e}"}
+		res = {"code": 99999, "success": False,  'msg': f"删除数据出现异常：{e}"}
 		logger.debug(f"数据删除状态         :❌")
 	return JsonResponse(res)
 	
@@ -136,3 +138,122 @@ def updateToken(request):
 		res = {"code": 99999, "msg": f"数据更新出现异常：{e}"}
 		logger.debug(f"数据写入状态         :❌")
 	return JsonResponse(res)
+
+
+class TokenSerializers(serializers.ModelSerializer):
+	class Meta:
+		model = ProjectToken
+		# fields = "__all__"
+		exclude = ['create_time', 'sys_time']
+
+
+class Paginator(PageNumberPagination):
+	# 默认每页显示的数据条数
+	page_size = 10
+	
+	# 获取URL参数中的设置页数
+	page_query_param = 'page_number'
+	# 获取URL参数中的设置的每页显示数据条数
+	page_size_query_param = 'page_size'
+	# 最大支持的每页显示的条数
+	max_page_size = 20
+	
+	
+class Tokens(APIView):
+	def get(self, request, *args, **kwargs):
+		keyword = request.GET.get("keyword")
+		if keyword:
+			token_list = ProjectToken.objects.filter(Q(projectName__icontains=keyword) | Q(userName__icontains=keyword) |
+			                                Q(projectId__icontains=keyword)).order_by("create_time")
+		else:
+			token_list = ProjectToken.objects.all().order_by("create_time")
+		# 计算产品线个数
+		total = token_list.count()
+		# 创建分页对象实例
+		paginator = Paginator()
+		page_app_list = paginator.paginate_queryset(token_list, self.request, view=self)
+		page_number = request.GET.get("page_number", 1)
+		page_size = request.GET.get("page_size", paginator.page_size)
+		# 对数据序列化
+		result = TokenSerializers(instance=page_app_list, many=True)
+		return response.Response({
+			"code": 1000,
+			"success": True,
+			"page_number": int(page_number),
+			"page_size": int(page_size),
+			"total": total,
+			"data": result.data
+		})
+	
+	def post(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		req_data["robotToken"] = url_NF + req_data.get("robotToken").split('robot/send?')[-1]
+		check_data = TokenSerializers(data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "创建成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
+		
+	def put(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		token = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
+		req_data["robotToken"] = url_NF + req_data.get("robotToken").split('robot/send?')[-1]
+		if not token:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认选项是否存在！"
+			})
+		check_data = TokenSerializers(instance=token, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "更新成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
+		
+	# delete 方法好像存在 bug 获取 token 列表 get 接口的时候也会触发这个接口
+	def delete(self, request, *args, **kwargs):
+		req_data = request.GET
+		app = ProjectToken.objects.filter(projectId=req_data.get("projectId")).first()
+		if not app:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认选项是否存在！"
+			})
+		else:
+			app.delete()
+			return response.Response({
+				"code": 10000,
+				"success": True,
+				"msg": "删除成功！"
+			})

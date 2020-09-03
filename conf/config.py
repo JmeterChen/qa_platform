@@ -1,48 +1,29 @@
 # -*- coding=utf-8 -*-
 # Author: BoLin Chen
 # @Date : 2020-08-10
-
-
 MYSQL = {
     'production': {
 	    'default': {
-		    # 配置使用mysql
-		    'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-		    'HOST': "10.50.255.161",  # 数据库ip
-		    'PORT': 3306,  # 数据库端口
+		    'ENGINE': 'django.db.backends.mysql',
+		    'HOST': "10.50.255.161",
+		    'PORT': 3306,
 		    'USER': "root",
 		    'PASSWORD': "261090dong",
-		    'NAME': "qa_platform",  # 数据库名, 事先要创建
+		    'NAME': "qa_platform",
 		    'TEST': {
 			    'CHARSET': 'utf8',
 			    'COLLATION': 'utf8_general_ci'
 		    }
 	    }
 	},
-	"staging": {
-		'default': {
-			# 配置使用mysql
-			'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-			'HOST': "localhost",  # 数据库ip
-			'PORT': 3306,  # 数据库端口
-			'USER': "root",
-			'PASSWORD': "19940415",
-			'NAME': "qa_platform",  # 数据库名, 事先要创建
-			'TEST': {
-				'CHARSET': 'utf8',
-				'COLLATION': 'utf8_general_ci'
-			}
-		}
-	},
 	"test": {
 		'default': {
-			# 配置使用mysql
-			'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-			'HOST': "10.0.6.56",  # 数据库ip
-			'PORT': 3306,  # 数据库端口
-			'USER': "root",
-			'PASSWORD': "Fdd*123",
-			'NAME': "qa_platform",  # 数据库名, 事先要创建
+			'ENGINE': 'django.db.backends.mysql',
+			'HOST': "10.50.255.105",
+			'PORT': 3306,
+			'USER': "qa_platform_test",
+			'PASSWORD': "fPaOw44UgXdWdoCA",
+			'NAME': "qa_platform",
 			'TEST': {
 				'CHARSET': 'utf8',
 				'COLLATION': 'utf8_general_ci'
@@ -51,17 +32,27 @@ MYSQL = {
 	},
 	"local": {
 		'default': {
-			# 配置使用mysql
-			'ENGINE': 'django.db.backends.mysql',  # 数据库产品
-			'HOST': "localhost",  # 数据库ip
-			'PORT': 3306,  # 数据库端口
-			'USER': "root",
-			'PASSWORD': "19940415",
-			'NAME': "qa_platform",  # 数据库名, 事先要创建
+			'ENGINE': 'django.db.backends.mysql',
+			'HOST': "10.50.255.105",
+			'PORT': 3306,
+			'USER': "qa_platform_test",
+			'PASSWORD': "fPaOw44UgXdWdoCA",
+			'NAME': "qa_platform",
 			'TEST': {
 				'CHARSET': 'utf8',
 				'COLLATION': 'utf8_general_ci'
 			}
 		}
 	}
+}
+
+
+db_mysql = {
+    'master': {
+	    'host': "10.50.255.161",
+	    'port': 3306,
+	    'user': "root",
+	    'password': "261090dong",
+	    'database': "newsonar"
+    }
 }

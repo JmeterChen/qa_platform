@@ -2,3 +2,9 @@
 venv/
 *.pyc
 output/logs/
+
+# celery beat schedule file
+celerybeat-schedule.db
+
+# log to console
+nohup.out

@@ -1,20 +1,21 @@
-from django.shortcuts import render
-from django.http import Http404, HttpResponse, JsonResponse, QueryDict
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from django.utils.decorators import method_decorator
-import json
+from django.http import Http404, HttpResponse, JsonResponse
 import datetime
-from django.views import View
-from rest_framework.views import APIView
-from mypro.models import *
-import time, random
+import json
+import time
 from datetime import datetime
-
+from urllib.parse import unquote
 from django.core import serializers
-from tapd.models import *
 from django.core.paginator import Paginator
 from django.db.models import Q
-
+from django.http import Http404, HttpResponse, JsonResponse
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from mypro.common.func import mondayOfWeek, sundayOfWeek, monthOfTime
+from mypro import tasks
+from mypro.myModelSerializers import GeneralPaginator, AppSerializers, ProjectSerializers, SonarSerializers, ServiceSerializers
+from rest_framework import response
+from mypro.models import *
 # Create your views here.
 
 
@@ -81,13 +82,14 @@ class StudentView(View):
 	
 	def dispatch(self, request, *args, **kwargs):
 		func = getattr(self, request.method.lower())
-		print(dir(self))
 		return func(request, *args, **kwargs)
 	
 	def get(self, request, *args, **kwargs):
 		# return HttpResponse("GET")
-		users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "sys_time", "userName")
-		return JsonResponse(list(users), safe=False)
+		# users = ProjectToken.objects.all().values("projectName", "projectId", "robotToken", "sys_time", "userName")
+		# return JsonResponse(list(users), safe=False)
+		res = tasks.saveJenkinsData.delay()
+		return JsonResponse({'status': 'successful', 'task_id': res.task_id})
 	
 	def post(self, request, *args, **kwargs):
 		return HttpResponse("POST")
@@ -102,242 +104,458 @@ class StudentView(View):
 		return HttpResponse("PATCH")
 
 
-# # 普通格式编写 views 函数
-# def get_order(request):
-# 	orders = Orders.objects.all().values("orderId", "orderName", "money", "status", "createUserName")
-# 	return JsonResponse(list(orders), safe=False)
-# 	# return HttpResponse("获取订单")
-#
-#
-# def post_order(request):
-# 	# return HttpResponse("创建订单")
-# 	resquest_data = json.loads(request.body)
-# 	dataId = str(round(time.time())) + str(random.randint(1, 100))
-# 	# resquest_data = request.POST.get("name")
-# 	# # return JsonResponse(resquest_data, safe=False)
-# 	# print(type(resquest_data))
-# 	# return HttpResponse(resquest_data)
-# 	resquest_data["orderId"] = dataId
-# 	Orders.objects.create(**resquest_data)
-# 	return JsonResponse(resquest_data, safe=False)
-#
-#
-# def put_order(request):
-# 	resquest_data = json.loads(request.body)
-# 	objId = resquest_data.get("orderId")
-# 	Orders.objects.filter(orderId=objId).update(**resquest_data, sys_time=datetime.now())
-# 	return JsonResponse(resquest_data, safe=False)
-#
-#
-# def delete_order(request):
-# 	resquest_data = json.loads(request.body)
-# 	objId = resquest_data.get("orderId")
-# 	Orders.objects.filter(orderId=objId).delete()
-# 	return HttpResponse("删除订单")
-
-
-# 基于 FBV 编写 views 函数
-def orders(request):
-	if request.method == 'GET':
-		return HttpResponse("获取订单")
-	elif request.method == 'POST':
-		return HttpResponse("创建订单")
-	elif request.method == 'PUT':
-		return HttpResponse("修改订单")
-	elif request.method == 'DELETE':
-		return HttpResponse("删除订单")
-
-
-# 基于 CBV 编写 views 函数
-class OrderView(View):
+class ProductView(APIView):
 	def get(self, request, *args, **kwargs):
-		return HttpResponse("获取订单", status=201)
-	
-	def post(self, request, *args, **kwargs):
-		return HttpResponse("创建订单")
-	
-	def put(self, request, *args, **kwargs):
-		return HttpResponse("修改订单")
-	
-	def delete(self, request, *args, **kwargs):
-		return HttpResponse("删除订单")
+		db_data = App.objects.filter(is_delete=0).order_by("create_time")
+		total = db_data.count()
+		paginator = GeneralPaginator()
+		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
+		page_number = request.GET.get("page_number", 1)
+		page_size = request.GET.get("page_size", paginator.page_size)
+		# 对数据序列化
+		# result = AppSerializers(instance=page_app_list, many=True)
+		result = AppSerializers(instance=page_app_list, many=True)
 
-
-class DogView(APIView):
-	def get(self, request, *args, **kwargs):
-		res = {
+		return response.Response({
 			"code": 1000,
-			"msg": "xxxx"
-		}
-		return JsonResponse(res, status=201)
+			"success": True,
+			"page_number": page_number,
+			"page_size": page_size,
+			"total": total,
+			"data": result.data
+		})
 	
 	def post(self, request, *args, **kwargs):
-		return HttpResponse({"name": [111, 22], "num":24}, safe=True)
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		req_data["product_id"] = str(round(time.time()))
+		check_data = AppSerializers(data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "创建成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
 	
 	def put(self, request, *args, **kwargs):
-		return HttpResponse("修改dog")
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		db_data = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
+		if not db_data:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该产品线是否存在！"
+			})
+		check_data = AppSerializers(instance=db_data, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "更新成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
 	
 	def delete(self, request, *args, **kwargs):
-		return HttpResponse("删除dog")
+		# req_data = json.loads(request.body)
+		req_data = request.GET
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		operator = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		db_data_one = App.objects.filter(pk=req_data.get("product_id"), is_delete=0).first()
+		if not db_data_one:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该产品线是否存在！"
+			})
+		else:
+			db_data_one.is_delete = 1
+			db_data_one.operator = operator
+			db_data_one.save()
+			return response.Response({
+				"code": 10000,
+				"success": True,
+				"msg": "删除成功！"
+			})
 
-# default conf
-default_pageNum = 1
+
+class ProjectView(APIView):
+	def get(self, request, *args, **kwargs):
+		db_data = Project.objects.filter(is_delete=0).order_by("create_time")
+		req = request.GET
+		if req.get("product_id"):
+			db_data = db_data.filter(product_id=req.get("product_id"))
+		total = db_data.count()
+		paginator = GeneralPaginator()
+		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
+		page_number = request.GET.get("page_number", 1)
+		page_size = request.GET.get("page_size", paginator.page_size)
+		result = ProjectSerializers(instance=page_app_list, many=True)
+		return response.Response({
+			"code": 1000,
+			"success": True,
+			"page_number": page_number,
+			"page_size": page_size,
+			"total": total,
+			"data": result.data
+		})
+	
+	def post(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		req_data["project_id"] = str(round(time.time()))[::-1][:-3]
+		check_data = ProjectSerializers(data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "创建成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
+	
+	def put(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		db_data = Project.objects.filter(pk=req_data.get("project_id"), is_delete=0).first()
+		if not db_data:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该项目组是否存在！"
+			})
+		check_data = ProjectSerializers(instance=db_data, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "更新成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
+	
+	def delete(self, request, *args, **kwargs):
+		# req_data = json.loads(request.body)
+		req_data = request.GET
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		operator = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		db_data = Project.objects.filter(pk=req_data.get("project_id"), is_delete=0).first()
+		if not db_data:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该项目组是否存在!"
+			})
+		else:
+			db_data.is_delete = 1
+			db_data.operator = operator
+			db_data.save()
+			return response.Response({
+				"code": 10000,
+				"success": True,
+				"msg": "删除成功！"
+			})
+
+
 default_pageSize = 10
+default_pageNum = 1
 
 
-class ProductView(View):
-	def get(self, request, *args, **kwargs):
-		# data = App.objects.all().values("product_name", "product_id")
-		db_data = App.objects.all().filter(is_delete=0).order_by("create_time")
-		data_len = db_data.__len__()
-		if not len(request.GET):
-			data = Paginator(db_data, default_pageSize).get_page(default_pageNum)
-			res = serializers.serialize("json", data)
-			res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, data: res, "total": data_len}
-			# res = serializers.serialize("json", data, fields={"create_time", "sys_time"})
-			
+class ServicesView(View):
+	def post(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		service_name, service_type, product_id, project_id, coder = req_data.get("service_name"), req_data.get(
+			"service_type"), req_data.get("product_id"), req_data.get("project_id"), req_data.get("coder")
+		if not (service_name and service_type and product_id and project_id and coder):
+			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
+		# elif Services.objects.filter(is_delete=0).filter(service_name=service_name):
+		# 	res = {"code": 10011, "success": False, "msg": "添加服务失败，存在同名服务！"}
+		elif Services.objects.filter(is_delete=0, product_id=product_id, project_id=project_id, service_name=service_name):
+			res = {"code": 10011, "success": False, "msg": "添加服务失败，同产品线同项目组存在同名服务！！"}
 		else:
-			pageSize = request.GET.get('pageSize', default_pageSize)
-			pageNum = request.GET.get('pageNum', default_pageNum)
-			max_page = (data_len // int(pageSize)) + 1
-			if int(pageNum) in range(1, max_page):
-				paginator = Paginator(db_data, pageSize)
-				data = paginator.get_page(pageNum)
-				result_data = serializers.serialize("json", data, fields={"product_name", "is_delete"})
-				res = {"code": 10000, "success": True, "pageNum": int(pageNum), "pageSize": int(pageSize), "data": result_data}
-			else:
-				res = {"code": 10009, "success": False, "msg": "查询数据不再查询范围！"}
+			try:
+				Services.objects.create(**req_data)
+				res = {"code": 10000, "success": True, "msg": "添加服务成功！", "data": req_data}
+			except Exception as e:
+				res = {"code": 10014, "success": False, "msg": "添加服务失败", "error_msg": e}
 		return JsonResponse(res)
 	
-	def post(self, request, *args, **kwargs):
-		request_data = json.loads(request.body) if request.body else {}
-		request_product_name = request_data.get("product_name")
-		if not request_product_name:
-			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
-		elif App.objects.filter(is_delete=0).filter(product_name=request_product_name):
-			res = {"code": 10011, "success": False, "msg": "添加产品线失败，存在同名产品线！"}
-		else:
-			product_id = str(round(time.time()))
-			try:
-				data = {"product_id": product_id, "product_name": request_product_name, "create_time": datetime.now()}
-				App.objects.create(**data)
-				res = {"code": 10000, "success": True, "msg": "添加产品线成功！", "data": data}
-			except Exception as e:
-				res = {"code": 10008, "success": False, "msg": "添加产品线失败", "error_msg": e}
+	def get(self, request, *args, **kwargs):
+		db_data = Services.objects.all().filter(is_delete=0).order_by("create_time")
+		req = request.GET
+		pageSize, pageNum = req.get("pageSize", default_pageSize), req.get("pageNum", default_pageNum)
+		if req.get("product_id"):
+			db_data = db_data.filter(product_id=req.get("product_id"))
+		if req.get("project_id"):
+			db_data = db_data.filter(project_id=req.get("project_id"))
+			# TODO how to add attr to serializers obj ？
+			# for i in data:
+			# 	i.product_name = App.objects.filter(product_id=i.product_id).first().product_name
+			# 	i.project_name = Project.objects.filter(project_id=i.project_id).first().project_name
+			# 	i.test_user_name = User.objects.filter(user_id=i.test_user_id).first().user_name
+		data_len = db_data.__len__()
+		data = Paginator(db_data, pageSize).get_page(pageNum)
+		result_data = serializers.serialize("json", data, ensure_ascii=False,
+		                                    fields={"service_name", "service_type", "product_id", "project_id", "coder", "test_user_id"})
+
+		dict_data = json.loads(result_data)
+		for i in dict_data:
+			i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
+			i["fields"]["project_name"] = Project.objects.filter(project_id=i["fields"]["project_id"]).first().project_name
+			if i["fields"]["test_user_id"]:
+				i["fields"]["test_user_name"] = User.objects.filter(user_id=i["fields"]["test_user_id"]).first().user_name
+		# result_data = json.dumps(dict_data, ensure_ascii=False)
+		# print(type(result_data))
+		res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, "data": dict_data, "total": data_len}
 		return JsonResponse(res)
 	
 	def put(self, request, *args, **kwargs):
-		request_data = json.loads(request.body)
-		product_id, product_name = request_data.get("product_id"), request_data.get("product_name")
-		if not App.objects.filter(product_id=product_id):
-			res = {"code": 10007, "success": False, "msg": "编辑产品线失败，请确认该产品线是否存在！"}
-		elif App.objects.filter(is_delete=0).filter(product_name=product_name):
-			res = {"code": 10011, "success": False, "msg": "编辑产品线失败，存在同名产品线！"}
-		else:
-			try:
-				App.objects.filter(product_id=product_id).update(product_name=product_name, update_time=datetime.now())
-				request_data["update_time"] = datetime.now()
-				res = {"code": 10000, "success": True, "msg": "编辑产品线成功！", "data": request_data}
-			except Exception as e:
-				res = {"code": 10006, "success": False, "msg": "编辑产品线失败", "error_msg": e}
-		return JsonResponse(res)
-	
-	def delete(self, request, *args, **kwargs):
-		request_data = json.loads(request.body)
-		product_id = request_data.get("product_id")
-		if not App.objects.filter(product_id=product_id):
-			res = {"code": 10005, "success": False, "msg": "删除产品线失败，请确认该产品线是否存在！"}
-		else:
-			App.objects.filter(product_id=product_id).update(is_delete=1, update_time=datetime.now())
-			res = {"code": 10000, "success": True, "msg": "删除产品线成功！"}
-		return JsonResponse(res)
-
-
-class ProjectView(View):
-	def get(self, request, *args, **kwargs):
-		# data = App.objects.all().values("product_name", "product_id")
-		db_data = Project.objects.all().filter(is_delete=0).order_by("create_time")
-		data_len = db_data.__len__()
-		if not len(request.GET):
-			res = serializers.serialize("json", db_data, fields={"project_name", "project_id", 'test_user_id',
-				                                                          'product_id'})
-			res = {"code": 10000, "success": True, "data": res, "total": data_len}
-		else:
-			req_product_id = request.GET.get("product_id", None)
-			if req_product_id:
-				data = db_data.filter(product_id=req_product_id)
-				data_len = data.__len__()
-				result_data = serializers.serialize("json", data, fields={"project_name", "project_id", 'test_user_id',
-				                                                          'product_id'})
-			else:
-				result_data = serializers.serialize('json', db_data, fields={"project_name", "project_id",
-				                                                             'test_user_id', 'product_id'})
-			res = {"code": 10000, "success": True, "data": result_data, "total": data_len}
-		return JsonResponse(res)
-	
-	def post(self, request, *args, **kwargs):
-		request_data = json.loads(request.body) if request.body else {}
-		project_name = request_data.get("project_name")
-		if not project_name:
-			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
-		elif Project.objects.filter(is_delete=0).filter(project_name=project_name):
-			res = {"code": 10011, "success": False, "msg": "添加项目组失败，存在同名项目组！"}
-		else:
-			project_id = str(round(time.time()))[::-1][:-3]
-			try:
-				request_data["project_id"] = project_id
-				Project.objects.create(**request_data)
-				res = {"code": 10000, "success": True, "msg": "添加产品线成功！", "data": request_data}
-			except Exception as e:
-				res = {"code": 10008, "success": False, "msg": "添加项目组失败", "error_msg": e}
-		return JsonResponse(res)
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		db_data = Services.objects.filter(is_delete=0)
+		service_id, service_name, product_id, project_id = req_data.get("id"), req_data.get("service_name"), req_data.get("product_id"), req_data.get("project_id")
 		
-	def put(self, request, *args, **kwargs):
-		request_data = json.loads(request.body) if request.body else {}
-		req_project_id = request_data.get("project_id")
-		if not req_project_id:
+		if not service_id:
 			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
 		else:
-			product_id, test_user_id, project_name = request_data.get("product_id"), request_data.get("test_user_id"), request_data.get("project_name")
-			db_data1 = Project.objects.filter(project_id=req_project_id)
-			db_data2 = Project.objects.filter(is_delete=0).filter(~Q(project_id=req_project_id)).filter(project_name=project_name)
-			if db_data2:
-				res = {"code": 10013, "success": False, "msg": "编辑项目组失败，存在同名项目组！"}
+			db_data1 = db_data.filter(id=service_id)
+			db_data2 = db_data.filter(~Q(id=service_id)).filter(product_id=product_id, project_id=project_id, service_name=service_name)
+			if not db_data1:
+				res = {"code": 10005, "success": False, "msg": "编辑服务失败，请确认该服务是否存在！"}
+			elif db_data2:
+				res = {"code": 10013, "success": False, "msg": "编辑服务失败，同产品线同项目组存在同名服务！"}
 			else:
 				try:
-					db_data1.update(product_id=product_id, project_name=project_name, test_user_id=test_user_id, update_time=datetime.now())
-					res = {"code": 10000, "success": True, "msg": "编辑项目组成功！", "data": request_data}
+					req_data.pop("service_id")
+					req_data["update_time"] = datetime.now()
+					db_data1.update(**req_data)
+					res = {"code": 10000, "success": True, "msg": "编辑服务成功！", "data": req_data}
 				except Exception as e:
-					res = {"code": 10014, "success": False, "msg": "编辑项目组失败", "error_msg": e}
+					res = {"code": 10014, "success": False, "msg": "编辑服务失败", "error_msg": e}
 		return JsonResponse(res)
-	
+			
 	def delete(self, request, *args, **kwargs):
-		request_data = json.loads(request.body)
-		project_id = request_data.get("project_id")
-		if not project_id:
+		# req_data = json.loads(request.body)
+		req_data = request.GET
+		service_id = req_data.get("id")
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		operator = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		db_data = Services.objects.filter(is_delete=0)
+		if not service_id:
 			res = {"code": 10012, "success": False, "msg": "缺少必填参数！"}
-		elif not Project.objects.filter(project_id=project_id):
-			res = {"code": 10005, "success": False, "msg": "删除项目组失败，请确认该项目组是否存在！"}
+		elif not db_data.filter(id=service_id):
+			res = {"code": 10005, "success": False, "msg": "删除服务失败，请确认该项目组是否存在！"}
 		else:
 			try:
-				Project.objects.filter(project_id=project_id).update(is_delete=1, update_time=datetime.now())
+				db_data.filter(id=service_id).update(is_delete=1, operator=operator, update_time=datetime.now())
 				res = {"code": 10000, "success": True, "msg": "删除项目组成功！"}
 			except Exception as e:
 				res = {"code": 10014, "success": False, "msg": "删除项目组失败", "error_msg": e}
 		return JsonResponse(res)
 	
 	
-class SonarView(View):
-	def post(self, request, *args, **kwargs):
-		pass
-	
+class ServicesViewApiView(APIView):
 	def get(self, request, *args, **kwargs):
-		db_data = SonarReport.objects.all().filter(is_delete=0).order_by("create_time")
-		data_len = db_data.__len__()
-		if not len(request.GET):
-			data = Paginator(db_data, default_pageSize).get_page(default_pageNum)
-			res = serializers.serialize("json", data)
-			res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, data: res, "total": data_len}
+		db_data = Services.objects.filter(is_delete=0).order_by("-create_time")
+		req = request.GET
+		if req.get("product_id"):
+			db_data = db_data.filter(product_id=req.get("product_id"))
+		if req.get("project_id"):
+			db_data = db_data.filter(project_id=req.get("project_id"))
+		if req.get("service_type"):
+			db_data = db_data.filter(service_type=req.get("service_type"))
+		if req.get("test_user_id"):
+			db_data = db_data.filter(test_user_id=req.get("test_user_id"))
+		total = db_data.count()
+		# 创建分页对象实例
+		paginator = GeneralPaginator()
+		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
+		page_number = request.GET.get("page_number", 1)
+		page_size = request.GET.get("page_size", paginator.page_size)
+		result = ServiceSerializers(instance=page_app_list, many=True)
+		return response.Response({
+			"code": 1000,
+			"success": True,
+			"page_number": page_number,
+			"page_size": page_size,
+			"total": total,
+			"data": result.data
+		})
+	
+	def post(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		check_data = ServiceSerializers(data=req_data)
+		if check_data.is_valid():
+			data = check_data.save(**req_data)
+			req_data["id"] = data.id
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "创建成功！",
+				"data": req_data
+			})
 		else:
-			product_id, project_id, _time = request.GET.get("product_id", None), request.GET.get("project_id", None), request.GET.get("_time", None)
-			req_list = list(filter(None, [product_id, project_id, _time]))
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
+	
+	def put(self, request, *args, **kwargs):
+		req_data = json.loads(request.body)
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		app = Services.objects.filter(pk=req_data.get("id"), is_delete=0).first()
+		if not app:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该服务是否存在！"
+			})
+		check_data = ServiceSerializers(instance=app, data=req_data)
+		if check_data.is_valid():
+			check_data.save()
+			return JsonResponse({
+				"code": 10000,
+				"success": True,
+				"msg": "更新成功！",
+				"data": req_data
+			})
+		else:
+			msg = ''
+			for i in check_data.errors.items():
+				msg += i[0] + i[1][0]
+				break
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": msg,
+				"errorDetail": check_data.errors
+			})
+	
+	def delete(self, request, *args, **kwargs):
+		# req_data = json.loads(request.body)
+		req_data = request.GET
+		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
+		operator = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
+		app = Services.objects.filter(pk=req_data.get("id"), is_delete=0).first()
+		if not app:
+			return JsonResponse({
+				"code": 90000,
+				"success": False,
+				"msg": "请确认该服务是否存在!"
+			})
+		else:
+			app.is_delete = 1
+			app.operator = operator
+			# app.operator = operator
+			app.save()
+			return response.Response({
+				"code": 10000,
+				"success": True,
+				"msg": "删除成功!"
+			})
+
+
+class SonarData(APIView):
+	def get(self, request, *args, **kwargs):
+		db_data = SonarReport.objects.order_by("-create_time")
+		req = request.GET
+		time_type = req.get("time_type")
+		if req.get("product_id"):
+			db_data = db_data.filter(product_id=req.get("product_id"))
+		if req.get("project_id"):
+			db_data = db_data.filter(project_id=req.get("project_id"))
+		if time_type == "week":
+			week_start, week_end = req.get("week_start", mondayOfWeek()) + ' 00:00:00.000000', req.get("week_end", sundayOfWeek()) + ' 23:59:59.999999'
+			db_data = db_data.filter(is_month=0).filter(create_time__range=[week_start, week_end])
+		elif time_type == "month":
+			month_start, month_end = req.get("month_start", monthOfTime()[0]) + ' 00:00:00.000000', req.get("month_end", monthOfTime()[1]) + ' 23:59:59.999999'
+			db_data = db_data.filter(is_month=1).filter(create_time__range=[month_start, month_end])
+		total = db_data.count()
+		# 创建分页对象实例
+		paginator = GeneralPaginator()
+		page_result_list = paginator.paginate_queryset(db_data, self.request, view=self)
+		page_number = req.get("page_number", 1)
+		page_size = req.get("page_size", paginator.page_size)
+		result = SonarSerializers(instance=page_result_list, many=True)
+		# data = Paginator(db_data, pageSize).get_page(pageNum)
+		# result_data = serializers.serialize("json", data, ensure_ascii=False)
+		# dict_data = json.loads(result_data)
+		# for i in dict_data:
+		# 	i["fields"]["product_name"] = App.objects.filter(product_id=i["fields"]["product_id"]).first().product_name
+		# 	i["fields"]["project_name"] = Project.objects.filter(project_id=i["fields"]["project_id"]).first().project_name
+		# 	i["fields"]["count_time"] = f'{i["fields"]["create_time"].split("T")[0]}'
+		# # result_data = json.dumps(dict_data, ensure_ascii=False)
+		# res = {"code": 10000, "success": True, "pageNum": default_pageNum, "pageSize": default_pageSize, "data": dict_data, "total": data_len}
+		return response.Response({
+			"code": 1000,
+			"success": True,
+			"page_number": page_number,
+			"page_size": page_size,
+			"total": total,
+			"data": result.data
+		})
+
+
