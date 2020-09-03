@@ -42,7 +42,8 @@ INSTALLED_APPS = [
 	'index',
 	'tapd',
 	'rest_framework',
-	'mypro'
+	'mypro',
+	'test_report'
 ]
 
 # REST_FRAMEWORK = {
@@ -62,6 +63,7 @@ MIDDLEWARE = [
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'test_report.middleware.HttpPost2HttpOtherMiddleware',  # 注册中间件
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -166,3 +168,5 @@ USE_TZ = False  # 处理数据库时间字段存在8个时区时差的问题
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+APPEND_SLASH = False
+
