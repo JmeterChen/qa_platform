@@ -83,7 +83,7 @@ def get_reports(request):
             report['report_url'] = r.test_report_url
             report['test_user'] = r.test_user
             report_list.append(report)
-        print(report_list)
+        # print(report_list)
         # pages = my_page(data=report_list)
     else:
         pass
