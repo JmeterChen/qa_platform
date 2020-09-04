@@ -139,9 +139,9 @@ def get_reports(request):
                 # 查询总数
                 page_info['count'] = page.count
                 # 当前页码，每页显示数据量，查询总数
-                page_info_dict['page_info'] = page_info
-                result_lst.append(page_info_dict)
-                resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': result_lst}
+                # page_info_dict['page_info'] = page_info
+
+                resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': result_lst, 'page_info': page_info}
     else:
         # 查询结果为空
         query_param['main_func'] = main_func
