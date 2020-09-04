@@ -107,8 +107,8 @@ def get_reports(request):
             page_num_max = page.num_pages
             if page_num_max < 0:
                 resp = {'code': 2002, 'success': False, 'msg': '参数page_size为负数', 'data': {}}
-            elif page_num < 0:
-                resp = {'code': 2002, 'success': False, 'msg': '参数page_num为负数', 'data': {}}
+            elif page_num < 1:
+                resp = {'code': 2002, 'success': False, 'msg': '参数page_num为零或负数', 'data': {}}
             elif page_num_max < page_num:
                 resp = {'code': 2002, 'success': False, 'msg': '当前页码不存在', 'data': {}}
             else:
@@ -117,6 +117,9 @@ def get_reports(request):
                 # 获取对应页码的数据:得到的是一个querySet
                 db_data = page_data.object_list
                 result = {}
+                # 单个测试报告数据
+                result = {}
+                # 查出的测试报告集
                 result_dict = {}
                 page_info = {}
                 index = 0
@@ -133,9 +136,13 @@ def get_reports(request):
                     result['operator'] = r.operator
                     result_dict[index] = result
                     index += 1
+                # 当前页码
                 page_info['num'] = page_num
+                # 每页显示多少数据
                 page_info['size'] = page_size
                 page_info['max_page_num'] = page_num_max
+                # 查询总数
+                page_info['count'] = page.count
                 result_dict['page_info'] = page_info
                 resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': [result_dict]}
 
