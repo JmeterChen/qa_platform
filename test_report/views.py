@@ -66,7 +66,6 @@ def add_report(request):
 def get_reports(request):
     # 查询条件:产品线和项目组
     query_param = {}
-    # param_lst = ['product_id', 'project_id']
     product_id = request.GET.get('product_id', '')
     project_id = request.GET.get('project_id', '')
     main_func = request.GET.get('main_func', '')
@@ -76,22 +75,6 @@ def get_reports(request):
         query_param['product_id'] = product_id
     if project_id:
         query_param['project_id'] = project_id
-    """
-    if request.body:
-        res = json.loads(request.body.decode())
-    else:
-        res = {}
-    main_func = res.get('main_func', '')
-    page_num = res.get('page_num', 1)
-    page_size = res.get('page_size', 10)
-    """
-    # 只有当请求参数字段在param_lst中才可以进行查询数据
-    """
-    if res.keys():
-        for key in param_lst:
-            if key in res.keys():
-                query_param[key] = res.get(key)
-    """
     # 查询条件为product_id,project_id,main_func
     if len(query_param) > 0 and main_func:
         query_data = TestReport.objects.filter(**query_param, mainTasks__contains=main_func, is_delete='0').order_by('-id')
@@ -120,22 +103,21 @@ def get_reports(request):
             page_num_max = page.num_pages
             if page_num_max < 0:
                 resp = {'code': 2002, 'success': False, 'msg': '参数page_size为负数', 'data': {}}
-            elif page_num < 1:
+            elif int(page_num) < 1:
                 resp = {'code': 2002, 'success': False, 'msg': '参数page_num为零或负数', 'data': {}}
-            elif page_num_max < page_num:
+            elif page_num_max < int(page_num):
                 resp = {'code': 2002, 'success': False, 'msg': '当前页码不存在', 'data': {}}
             else:
                 # 说明page_num在最大页码范围内
                 page_data = page.page(page_num)
                 # 获取对应页码的数据:得到的是一个querySet
                 db_data = page_data.object_list
-                result = {}
                 # 单个测试报告数据
                 result = {}
                 # 查出的测试报告集
-                result_dict = {}
+                result_lst = []
                 page_info = {}
-                index = 0
+                page_info_dict = {}
                 for r in db_data:
                     result['id'] = r.id
                     result['product_id'] = r.product_id
@@ -147,18 +129,19 @@ def get_reports(request):
                     # result['create_time'] = r.create_time
                     # result['update_time'] = r.update_time
                     result['operator'] = r.operator
-                    result_dict[index] = result
-                    index += 1
+                    result_lst.append(result)
                 # 当前页码
                 page_info['num'] = page_num
                 # 每页显示多少数据
                 page_info['size'] = page_size
+                # 最大分页数
                 page_info['max_page_num'] = page_num_max
                 # 查询总数
                 page_info['count'] = page.count
-                result_dict['page_info'] = page_info
-                resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': [result_dict]}
-
+                # 当前页码，每页显示数据量，查询总数
+                page_info_dict['page_info'] = page_info
+                result_lst.append(page_info_dict)
+                resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': result_lst}
     else:
         # 查询结果为空
         query_param['main_func'] = main_func
