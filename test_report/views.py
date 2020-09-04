@@ -64,7 +64,19 @@ def add_report(request):
 # 查询测试报告
 @require_GET
 def get_reports(request):
-    param_lst = ['product_id', 'project_id']
+    # 查询条件:产品线和项目组
+    query_param = {}
+    # param_lst = ['product_id', 'project_id']
+    product_id = request.GET.get('product_id', '')
+    project_id = request.GET.get('project_id', '')
+    main_func = request.GET.get('main_func', '')
+    page_num = request.GET.get('page_num', 1)
+    page_size = request.GET.get('page_size', 10)
+    if product_id:
+        query_param['product_id'] = product_id
+    if project_id:
+        query_param['project_id'] = project_id
+    """
     if request.body:
         res = json.loads(request.body.decode())
     else:
@@ -72,13 +84,14 @@ def get_reports(request):
     main_func = res.get('main_func', '')
     page_num = res.get('page_num', 1)
     page_size = res.get('page_size', 10)
-    # 查询条件:产品线和项目组
-    query_param = {}
+    """
     # 只有当请求参数字段在param_lst中才可以进行查询数据
+    """
     if res.keys():
         for key in param_lst:
             if key in res.keys():
                 query_param[key] = res.get(key)
+    """
     # 查询条件为product_id,project_id,main_func
     if len(query_param) > 0 and main_func:
         query_data = TestReport.objects.filter(**query_param, mainTasks__contains=main_func, is_delete='0').order_by('-id')
