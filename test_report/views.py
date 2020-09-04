@@ -64,29 +64,86 @@ def add_report(request):
 # 查询测试报告
 @require_GET
 def get_reports(request):
-    request_data = {}
-    # 所有测试报告
-    report_list = []
-    # 单个测试报告
-    report = {}
-    # 判断请求参数是否为空,为空默认获取所有is_delete=0的测试报告
-    if len(request.GET.keys()) == 0:
-        # 倒叙获取
-        reports = TestReport.objects.filter(is_delete='0').order_by('-id')
-        for r in reports:
-            print(r)
-            report['id'] = r.id
-            report['product_id'] = r.product_id
-            report['project_id'] = r.project_id
-            report['iter_name'] = r.iterable_name
-            report['main_func'] = r.mainTasks
-            report['report_url'] = r.test_report_url
-            report['test_user'] = r.test_user
-            report_list.append(report)
-        # print(report_list)
-        # pages = my_page(data=report_list)
+    param_lst = ['product_id', 'project_id']
+    if request.body:
+        res = json.loads(request.body.decode())
     else:
-        pass
+        res = {}
+    main_func = res.get('main_func', '')
+    page_num = res.get('page_num', 1)
+    page_size = res.get('page_size', 10)
+    # 查询条件:产品线和项目组
+    query_param = {}
+    # 只有当请求参数字段在param_lst中才可以进行查询数据
+    if res.keys():
+        for key in param_lst:
+            if key in res.keys():
+                query_param[key] = res.get(key)
+    # 查询条件为product_id,project_id,main_func
+    if len(query_param) > 0 and main_func:
+        query_data = TestReport.objects.filter(**query_param, mainTasks__contains=main_func, is_delete='0').order_by('-id')
+    # 查询条件为main_func
+    elif len(query_param) == 0 and main_func:
+        query_data = TestReport.objects.filter(mainTasks__contains=main_func, is_delete='0').order_by('-id')
+    # 查询条件为product_id, project_id
+    elif len(query_param) > 0 and len(main_func) == 0:
+        query_data = TestReport.objects.filter(**query_param, is_delete='0').order_by('-id')
+    # 查询条件为空
+    else:
+        query_data = TestReport.objects.filter(is_delete='0').order_by('-id')
+    # 查询结果不为空
+    if query_data:
+        try:
+            # 若page_size为负数，则产生的页码也是负数
+            page = Paginator(query_data, page_size)
+        except:
+            # page_size的值非正整数
+            query_param['main_func'] = main_func
+            query_param['page_num'] = page_num
+            query_param['page_size'] = page_size
+            resp = {'code': 2001, 'success': False, 'msg': '参数page_size应为非0整数', 'data': {'query': query_param}}
+        else:
+            # 最大页码
+            page_num_max = page.num_pages
+            if page_num_max < 0:
+                resp = {'code': 2002, 'success': False, 'msg': '参数page_size为负数', 'data': {}}
+            elif page_num < 0:
+                resp = {'code': 2002, 'success': False, 'msg': '参数page_num为负数', 'data': {}}
+            elif page_num_max < page_num:
+                resp = {'code': 2002, 'success': False, 'msg': '当前页码不存在', 'data': {}}
+            else:
+                # 说明page_num在最大页码范围内
+                page_data = page.page(page_num)
+                # 获取对应页码的数据:得到的是一个querySet
+                db_data = page_data.object_list
+                result = {}
+                result_dict = {}
+                page_info = {}
+                index = 0
+                for r in db_data:
+                    result['id'] = r.id
+                    result['product_id'] = r.product_id
+                    result['project_id'] = r.project_id
+                    result['iter_name'] = r.iterable_name
+                    result['main_func'] = r.mainTasks
+                    result['report_url'] = r.test_report_url
+                    result['test_user'] = r.test_user
+                    # result['create_time'] = r.create_time
+                    # result['update_time'] = r.update_time
+                    result['operator'] = r.operator
+                    result_dict[index] = result
+                    index += 1
+                page_info['num'] = page_num
+                page_info['size'] = page_size
+                page_info['max_page_num'] = page_num_max
+                result_dict['page_info'] = page_info
+                resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': [result_dict]}
+
+    else:
+        # 查询结果为空
+        query_param['main_func'] = main_func
+        resp = {'code': 2000, 'success': True, 'msg': '查询结果为空', 'data': {'query': query_param}}
+    return JsonResponse(resp)
 
 
 # 修改测试报告
@@ -133,7 +190,8 @@ def update_report(request):
                             try:
                                 TestReport.objects.filter(id=report_id).update(**db_data)
                             except:
-                                resp = {'code': 4005, 'success': False, 'msg': '更新数据失败', 'data': {'report_id': report_id}}
+                                resp = {'code': 4005, 'success': False, 'msg': '更新数据失败', 'data': {'report_id': report_id,
+                                                                                                  'info': db_data}}
                             else:
                                 resp = {'code': 2000, 'success': True, 'msg': '更新数据成功', 'data': {'report_id': report_id,
                                                                                                  'info': db_data}}
