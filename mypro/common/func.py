@@ -75,9 +75,25 @@ def monthOfTime():
 	return day_begin, day_end
 	
 	
+def time_id(num=None):
+	"""
+	:param num:     id 长度
+	:return: 
+	"""
+	import time, hashlib
+	m = hashlib.md5()
+	_str = str(time.time())
+	m.update(bytes(_str, encoding='utf-8'))
+	res = "".join(filter(str.isdigit, m.hexdigest()))
+	if num:
+		res = res[:num]
+	return res
+	
+
 if __name__ == '__main__':
 	# _str = '2020-08-17'
 	# _str_list = list(map(lambda x: int(x), _str.split("-")))
 	# print(_str_list)
 	# print(get_week_of_month(_str_list[0], _str_list[1], _str_list[2]))
-	print(monthOfTime())
+	# print(monthOfTime())
+	print(time_id())

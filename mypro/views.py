@@ -11,7 +11,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
-from mypro.common.func import mondayOfWeek, sundayOfWeek, monthOfTime
+from mypro.common.func import mondayOfWeek, sundayOfWeek, monthOfTime, time_id
 from mypro import tasks
 from mypro.myModelSerializers import GeneralPaginator, AppSerializers, ProjectSerializers, SonarSerializers, ServiceSerializers
 from rest_framework import response
@@ -129,7 +129,7 @@ class ProductView(APIView):
 		req_data = json.loads(request.body)
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
-		req_data["product_id"] = str(round(time.time()))
+		req_data["product_id"] = time_id(4)
 		check_data = AppSerializers(data=req_data)
 		if check_data.is_valid():
 			check_data.save()
@@ -231,7 +231,7 @@ class ProjectView(APIView):
 		req_data = json.loads(request.body)
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
-		req_data["project_id"] = str(round(time.time()))[::-1][:-3]
+		req_data["project_id"] = time_id(6)
 		check_data = ProjectSerializers(data=req_data)
 		if check_data.is_valid():
 			check_data.save()
