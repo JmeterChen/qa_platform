@@ -106,7 +106,7 @@ class StudentView(View):
 
 class ProductView(APIView):
 	def get(self, request, *args, **kwargs):
-		db_data = App.objects.filter(is_delete=0).order_by("create_time")
+		db_data = App.objects.filter(is_delete=0).order_by("-create_time")
 		total = db_data.count()
 		paginator = GeneralPaginator()
 		page_app_list = paginator.paginate_queryset(db_data, self.request, view=self)
@@ -208,7 +208,7 @@ class ProductView(APIView):
 
 class ProjectView(APIView):
 	def get(self, request, *args, **kwargs):
-		db_data = Project.objects.filter(is_delete=0).order_by("create_time")
+		db_data = Project.objects.filter(is_delete=0).order_by("-create_time")
 		req = request.GET
 		if req.get("product_id"):
 			db_data = db_data.filter(product_id=req.get("product_id"))

@@ -25,7 +25,7 @@ class AppSerializers(serializers.ModelSerializer):
 	class Meta:
 		model = App
 		# fields = "__all__"
-		fields = ["product_id", "product_name"]
+		fields = ["product_id", "product_name", "operator"]
 		
 
 class ProjectSerializers(serializers.ModelSerializer):
