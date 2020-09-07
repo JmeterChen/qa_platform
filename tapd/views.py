@@ -10,9 +10,9 @@ from datetime import datetime
 from tapd import logger
 from rest_framework import response, serializers
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination
 from mypro.models import *
 import time
+from mypro.myModelSerializers import GeneralPaginator
 # Create your views here.
 
 url_NF = 'http://ddcorp.dc.fdd/robot/send?'  # 智敏的服务
@@ -146,18 +146,6 @@ class TokenSerializers(serializers.ModelSerializer):
 		# fields = "__all__"
 		exclude = ['create_time', 'sys_time']
 
-
-class Paginator(PageNumberPagination):
-	# 默认每页显示的数据条数
-	page_size = 10
-	
-	# 获取URL参数中的设置页数
-	page_query_param = 'page_number'
-	# 获取URL参数中的设置的每页显示数据条数
-	page_size_query_param = 'page_size'
-	# 最大支持的每页显示的条数
-	max_page_size = 20
-	
 	
 class Tokens(APIView):
 	def get(self, request, *args, **kwargs):
@@ -170,7 +158,7 @@ class Tokens(APIView):
 		# 计算产品线个数
 		total = token_list.count()
 		# 创建分页对象实例
-		paginator = Paginator()
+		paginator = GeneralPaginator()
 		page_app_list = paginator.paginate_queryset(token_list, self.request, view=self)
 		page_number = request.GET.get("page_number", 1)
 		page_size = request.GET.get("page_size", paginator.page_size)

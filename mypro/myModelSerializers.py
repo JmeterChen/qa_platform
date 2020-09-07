@@ -18,7 +18,7 @@ class GeneralPaginator(PageNumberPagination):
 	# 获取URL参数中的设置的每页显示数据条数
 	page_size_query_param = 'page_size'
 	# 最大支持的每页显示的条数
-	max_page_size = 20
+	max_page_size = 999
 
 
 class AppSerializers(serializers.ModelSerializer):
