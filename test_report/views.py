@@ -16,7 +16,10 @@ def add_report(request):
     # 获取请求头中的操作人：由于信息经过url编码了，故需要解码
     oper_user_name = urllib.parse.unquote(request.META.get('HTTP_OPERATOR', ''))  # 不设置默认值会报错
     # 获取请求参数
-    res = json.loads(request.body.decode())
+    if request.body:
+        res = json.loads(request.body.decode())
+    else:
+        res = {}
     # 存储成功插入数据库的测试报告信息
     report = {}
     # 请求参数必含以下字段
@@ -55,7 +58,7 @@ def add_report(request):
             report['create_time'] = insert_data.create_time
             report['update_time'] = insert_data.update_time
             report['operator'] = insert_data.operator
-            resp = {'code': 2000, 'success': True, 'msg': '新增测试报告成功', 'data': {'0': report}}
+            resp = {'code': 2000, 'success': True, 'msg': '新增测试报告成功', 'data': report}
     else:
         resp = {'code': 4001, 'success': False, 'msg': '无操作人信息或无请求数据', 'data': {}}
     return JsonResponse(resp)
@@ -66,6 +69,7 @@ def add_report(request):
 def get_reports(request):
     # 查询条件:产品线和项目组
     query_param = {}
+    query = {}
     product_id = request.GET.get('product_id', '')
     project_id = request.GET.get('project_id', '')
     main_func = request.GET.get('main_func', '')
@@ -77,16 +81,17 @@ def get_reports(request):
         query_param['project_id'] = project_id
     # 查询条件为product_id,project_id,main_func
     if len(query_param) > 0 and main_func:
-        query_data = TestReport.objects.filter(**query_param, mainTasks__contains=main_func, is_delete='0').order_by('-id')
+        query_data = TestReport.objects.filter(**query_param, mainTasks__contains=main_func, is_delete='0').\
+            order_by('-update_time')
     # 查询条件为main_func
     elif len(query_param) == 0 and main_func:
-        query_data = TestReport.objects.filter(mainTasks__contains=main_func, is_delete='0').order_by('-id')
+        query_data = TestReport.objects.filter(mainTasks__contains=main_func, is_delete='0').order_by('-update_time')
     # 查询条件为product_id, project_id
     elif len(query_param) > 0 and len(main_func) == 0:
-        query_data = TestReport.objects.filter(**query_param, is_delete='0').order_by('-id')
+        query_data = TestReport.objects.filter(**query_param, is_delete='0').order_by('-update_time')
     # 查询条件为空
     else:
-        query_data = TestReport.objects.filter(is_delete='0').order_by('-id')
+        query_data = TestReport.objects.filter(is_delete='0').order_by('-update_time')
     # 查询结果不为空
     if query_data:
         try:
@@ -94,41 +99,44 @@ def get_reports(request):
             page = Paginator(query_data, page_size)
         except:
             # page_size的值非正整数
-            query_param['main_func'] = main_func
-            query_param['page_num'] = page_num
-            query_param['page_size'] = page_size
-            resp = {'code': 2001, 'success': False, 'msg': '参数page_size应为非0整数', 'data': {'query': query_param}}
+            query['main_func'] = main_func
+            query['page_num'] = page_num
+            query['page_size'] = page_size
+            resp = {'code': 4001, 'success': False, 'msg': '参数page_size应为非0整数', 'data': {'query': query}}
         else:
             # 最大页码
             page_num_max = page.num_pages
             if page_num_max < 0:
-                resp = {'code': 2002, 'success': False, 'msg': '参数page_size为负数', 'data': {}}
+                resp = {'code': 4002, 'success': False, 'msg': '参数page_size为负数', 'data': {}}
             elif int(page_num) < 1:
-                resp = {'code': 2002, 'success': False, 'msg': '参数page_num为零或负数', 'data': {}}
+                resp = {'code': 4002, 'success': False, 'msg': '参数page_num为零或负数', 'data': {}}
             elif page_num_max < int(page_num):
-                resp = {'code': 2002, 'success': False, 'msg': '当前页码不存在', 'data': {}}
+                resp = {'code': 4002, 'success': False, 'msg': '当前页码不存在', 'data': {}}
             else:
                 # 说明page_num在最大页码范围内
                 page_data = page.page(page_num)
                 # 获取对应页码的数据:得到的是一个querySet
                 db_data = page_data.object_list
-                # 单个测试报告数据
-                result = {}
                 # 查出的测试报告集
                 result_lst = []
                 page_info = {}
-                page_info_dict = {}
                 for r in db_data:
-                    result['id'] = r.id
-                    result['product_id'] = r.product_id
-                    result['project_id'] = r.project_id
-                    result['iter_name'] = r.iterable_name
-                    result['main_func'] = r.mainTasks
-                    result['report_url'] = r.test_report_url
-                    result['test_user'] = r.test_user
+                    # 返回的数据为querySet[{}]格式
+                    product_info = App.objects.filter(product_id=r.product_id).values('product_name')
+                    project_info = Project.objects.filter(project_id=r.project_id).values('project_name')
+                    product_name = ''
+                    project_name = ''
+                    if project_info:
+                        project_name = project_info[0]['project_name']
+                    if product_info:
+                        product_name = product_info[0]['product_name']
+                    # 单个测试报告数据
+                    result = {'id': r.id, 'product_id': r.product_id, 'product_name': product_name,
+                              'project_id': r.project_id, 'project_name': project_name,
+                              'iter_name': r.iterable_name, 'main_func': r.mainTasks, 'report_url': r.test_report_url,
+                              'test_user': r.test_user, 'operator': r.operator}
                     # result['create_time'] = r.create_time
                     # result['update_time'] = r.update_time
-                    result['operator'] = r.operator
                     result_lst.append(result)
                 # 当前页码
                 page_info['num'] = page_num
@@ -140,12 +148,15 @@ def get_reports(request):
                 page_info['count'] = page.count
                 # 当前页码，每页显示数据量，查询总数
                 # page_info_dict['page_info'] = page_info
-
                 resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': result_lst, 'page_info': page_info}
     else:
         # 查询结果为空
-        query_param['main_func'] = main_func
-        resp = {'code': 2000, 'success': True, 'msg': '查询结果为空', 'data': {'query': query_param}}
+        query['product_id'] = product_id
+        query['project_id'] = project_id
+        query['main_func'] = main_func
+        query['page_num'] = page_num
+        query['page_size'] = page_size
+        resp = {'code': 2000, 'success': True, 'msg': '查询结果为空', 'data': {'query': query}}
     return JsonResponse(resp)
 
 
@@ -218,47 +229,38 @@ def update_report(request):
 
 
 # 删除测试报告:将is_delete置为1
+@require_GET
 def delete_report(request):
     # 获取请求头中的操作人：由于信息经过url编码了，故需要解码
     oper_user_name = urllib.parse.unquote(request.META.get('HTTP_OPERATOR', ''))  # 不设置默认值会报错
     # 存储数据库中的测试报告id
     report_id_lst = []
-    if request.method.lower() == 'delete':
-        # 由于请求参数是放在body体中，所以先判断是否有请求数据
-        if request.body:
-            request_data = json.loads(request.body)
-            # 请求删除的测试报告id
-            report_id = request_data.get('id', '')
-            # 获取库中所有的数据
-            reports = TestReport.objects.all()
-            for r in reports:
-                report_id_lst.append(r.id)
-            # 当测试报告id在数据库中才能进行删除操作
-            if report_id in report_id_lst:
-                for r in reports:
-                    # 数据库中只有is_delete=0时才能被删除
-                    if r.is_delete == 0:
-                        try:
-                            TestReport.objects.filter(id=report_id).update(is_delete='1', operator=oper_user_name)
-                        except:
-                            resp = {'code': 4004, 'success': False, 'msg': "修改数据失败", 'data': {'report_id': report_id}}
-                            return JsonResponse(resp)
-                        else:
-                            resp = {'code': 2000, 'success': True, 'msg': '数据删除成功', 'data': {'report_id': report_id}}
-                            return JsonResponse(resp)
-                    else:
-                        resp = {'code': 4003, 'success': False, 'msg': '数据已被删除，无法进行删除操作', 'data': {'report_id': report_id}}
-                        return JsonResponse(resp)
+    report_id = request.GET.get('report_id', '')
+    # 由于report_id是字符串类型，故需要判断字符是否仅含数字，若不是仅有数字组成，则默认值为0
+    if not report_id.isdigit():
+        report_id = 0
+    # 获取库中所有数据
+    reports = TestReport.objects.all()
+    for r in reports:
+        report_id_lst.append(r.id)
+    # 当测试报告id在数据库中才能进行删除操作
+    if int(report_id) in report_id_lst:
+        report = TestReport.objects.filter(id=report_id)
+        # 数据库中只有is_delete=0时才能被删除
+        if report[0].is_delete == 0:
+            now = datetime.datetime.now()
+            update_time = now.strftime("%Y-%m-%d %H:%M:%S")
+            try:
+                TestReport.objects.filter(id=report_id).update(is_delete='1', operator=oper_user_name,
+                                                               update_time=update_time)
+            except:
+                resp = {'code': 4003, 'success': False, 'msg': "修改数据失败", 'data': {'report_id': report_id}}
             else:
-                # 说明数据不存在
-                resp = {'code': 4002, 'success': False, 'msg': "数据不存在", 'data': {'report_id': report_id}}
-                return JsonResponse(resp)
+                resp = {'code': 2000, 'success': True, 'msg': '数据删除成功', 'data': {'report_id': report_id}}
         else:
-            # 说明body中无请求数据
-            resp = {'code': 4001, 'success': False, 'msg': '请求数据为空', 'data': {}}
-            return JsonResponse(resp)
+            resp = {'code': 4002, 'success': False, 'msg': '数据已被删除，无法进行删除操作', 'data': {'report_id': report_id}}
     else:
-        # 说明请求方法不是delete
-        resp = {'code': 4000, 'success': False, 'msg': "请求方式必须是DELETE", 'data': {}}
-        return JsonResponse(resp)
+        # 说明数据不存在
+        resp = {'code': 4001, 'success': False, 'msg': "数据不存在", 'data': {'report_id': report_id}}
+    return JsonResponse(resp)
 
