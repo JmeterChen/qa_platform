@@ -99,10 +99,15 @@ def get_reports(request):
             page = Paginator(query_data, page_size)
         except:
             # page_size的值非正整数
+            # 这种情况返回报文中data应为{}，前端要求
+            """
+            query['product_id'] = product_id
+            query['project_id'] = project_id
             query['main_func'] = main_func
             query['page_num'] = page_num
             query['page_size'] = page_size
-            resp = {'code': 4001, 'success': False, 'msg': '参数page_size应为非0整数', 'data': {'query': query}}
+            """
+            resp = {'code': 4001, 'success': False, 'msg': '参数page_size应为非0整数', 'data': {}}
         else:
             # 最大页码
             page_num_max = page.num_pages
@@ -151,12 +156,14 @@ def get_reports(request):
                 resp = {'code': 2000, 'success': True, 'msg': '查询数据成功', 'data': result_lst, 'page_info': page_info}
     else:
         # 查询结果为空
+        """
         query['product_id'] = product_id
         query['project_id'] = project_id
         query['main_func'] = main_func
         query['page_num'] = page_num
         query['page_size'] = page_size
-        resp = {'code': 2000, 'success': True, 'msg': '查询结果为空', 'data': {'query': query}}
+        """
+        resp = {'code': 2000, 'success': True, 'msg': '查询结果为空', 'data': {}}
     return JsonResponse(resp)
 
 
@@ -243,6 +250,10 @@ def delete_report(request):
     reports = TestReport.objects.all()
     for r in reports:
         report_id_lst.append(r.id)
+    # 只有传操作人信息才能进行删除操作
+    if not oper_user_name:
+        resp = {'code': 4000, 'success': False, 'msg': "当前操作人为空", 'data': {'user': oper_user_name}}
+        return JsonResponse(resp)
     # 当测试报告id在数据库中才能进行删除操作
     if int(report_id) in report_id_lst:
         report = TestReport.objects.filter(id=report_id)
@@ -263,4 +274,3 @@ def delete_report(request):
         # 说明数据不存在
         resp = {'code': 4001, 'success': False, 'msg': "数据不存在", 'data': {'report_id': report_id}}
     return JsonResponse(resp)
-
