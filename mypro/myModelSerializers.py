@@ -31,6 +31,7 @@ class AppSerializers(serializers.ModelSerializer):
 class ProjectSerializers(serializers.ModelSerializer):
 	product_name = serializers.SerializerMethodField("get_product_name")
 	test_user_name = serializers.SerializerMethodField("get_test_user_name")
+	update_time = serializers.SerializerMethodField("get_update_time")
 	
 	class Meta:
 		model = Project
@@ -54,7 +55,7 @@ class ProjectSerializers(serializers.ModelSerializer):
 		return user_name
 	
 	def get_update_time(self, obj):
-		update_time = ""
+		update_time = "--"
 		if obj.update_time:
 			update_time = obj.update_time.split(".")[0].replace("T", " ")
 		return update_time
