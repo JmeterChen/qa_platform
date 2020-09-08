@@ -52,7 +52,13 @@ class ProjectSerializers(serializers.ModelSerializer):
 			user_name = User.objects.filter(user_id=user_id).first().user_name if User.objects.filter(
 				user_id=user_id).first() else ""
 		return user_name
-		
+	
+	def get_update_time(self, obj):
+		update_time = ""
+		if obj.update_time:
+			update_time = obj.update_time.split(".")[0].replace("T", " ")
+		return update_time
+	
 		
 class SonarSerializers(serializers.ModelSerializer):
 	product_name = serializers.SerializerMethodField("get_product_name")
