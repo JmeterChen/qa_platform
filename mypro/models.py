@@ -138,7 +138,7 @@ class TestCase(models.Model):
 	product_id = models.CharField(null=False, max_length=20)
 	project_id = models.CharField(null=False,  max_length=20)
 	iterable_name = models.CharField(null=False, max_length=50)
-	main_tasks = models.CharField(null=False, max_length=100)
+	main_tasks = models.CharField(null=False, max_length=200)
 	test_cases_url = models.URLField(null=False, max_length=200)
 	# cases_num = models.IntegerField('用例条数', default=0)
 	test_user = models.CharField(max_length=20)

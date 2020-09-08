@@ -35,7 +35,7 @@ class ProjectSerializers(serializers.ModelSerializer):
 	class Meta:
 		model = Project
 		# fields = "__all__"
-		fields = ["product_name", "product_id", "project_name", "project_id", "test_user_id", "test_user_name", "operator"]
+		fields = ["product_name", "product_id", "project_name", "project_id", "test_user_id", "test_user_name", "operator", "update_time"]
 	
 	def get_product_name(self, obj):
 		product_name = ""
