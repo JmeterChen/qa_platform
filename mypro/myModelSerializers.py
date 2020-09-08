@@ -57,7 +57,7 @@ class ProjectSerializers(serializers.ModelSerializer):
 	def get_update_time(self, obj):
 		update_time = "--"
 		if obj.update_time:
-			update_time = obj.update_time.split(".")[0].replace("T", " ")
+			update_time = str(obj.update_time).split(".")[0].replace("T", " ")
 		return update_time
 	
 		
