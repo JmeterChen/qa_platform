@@ -464,18 +464,19 @@ class ServicesViewApiView(APIView):
 	
 	def put(self, request, *args, **kwargs):
 		req_data = json.loads(request.body)
+		# print(req_data)
 		HTTP_OPERATOR = request.META.get('HTTP_OPERATOR')
 		req_data["operator"] = "Anonymous" if not HTTP_OPERATOR else unquote(HTTP_OPERATOR)
-		app = Services.objects.filter(pk=req_data.get("id"), is_delete=0).first()
-		if not app:
+		service = Services.objects.filter(pk=req_data.get("id"), is_delete=0)
+		if not service:
 			return JsonResponse({
 				"code": 90000,
 				"success": False,
 				"msg": "请确认该服务是否存在！"
 			})
-		check_data = ServiceSerializers(instance=app, data=req_data)
+		check_data = ServiceSerializers(instance=service.first(), data=req_data)
 		if check_data.is_valid():
-			check_data.save()
+			service.update(**req_data)
 			return JsonResponse({
 				"code": 10000,
 				"success": True,
