@@ -46,7 +46,8 @@ INSTALLED_APPS = [
 	'test_report',
 	'qualitydata',
 	'problem_guide',
-	'user'
+	'user',
+	'bugly'
 ]
 
 # REST_FRAMEWORK = {

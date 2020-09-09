@@ -12,4 +12,5 @@ urlpatterns = [
     re_path('^api/v1/', include('qualitydata.urls')),
     re_path('^api/v1/', include("testcase.urls")),
     re_path('^api/v1/', include("tapd.urls")),
+	re_path('^api/v1/', include("bugly.urls"))
 ]

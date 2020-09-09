@@ -98,13 +98,13 @@ if __name__ == '__main__':
 	projectId = 60765812
 	work_id = 1160765812001017396
 	# # print(get_user_email_by_name(project_id, "文建"))
-	# data = get_work_detail_by_id(project_id, work_id).get("data", {}).get("Bug", {})
-	# print(data)
+	data = get_work_detail_by_id(projectId, work_id).get("data", {}).get("Bug", {})
+	print(data)
 	# get_work_detail_by_id(project_id, work_id).get("data", {}).get("Bug", {})
 	# current_owner = get_usersList(data.get("current_owner"))
 	# print(current_owner)
 	# email = get_user_email_by_name(project_id, current_owner)
-	print(get_users_by_proId(projectId, "email", "user"))
+	# print(get_users_by_proId(projectId, "email", "user"))
 	
 	# project_id = 40618851
 	# work_id = 1140618851001017847

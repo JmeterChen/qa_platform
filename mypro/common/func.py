@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import pymysql, os
 from conf.config import db_mysql
 import time, calendar
+import requests
 
 
 def get_week_of_month(year, month, day):
@@ -90,10 +91,34 @@ def time_id(num=None):
 	return res
 	
 
+def ding_push(content=None):
+	robot_url = 'https://oapi.dingtalk.com/robot/send?access_token=3e62b7589eb8184e4d6faf8812d48a7e68d24b1c69e947cdea6260fb5499302d'
+	text = '哈哈哈测试'
+	tittle = '测试push'
+	result_path = 'https://ddsf.fangdd.com/'
+	robot_body = {
+		"msgtype": "text",
+		# "link": {
+		# 	"text": text,
+		# 	"title": tittle,
+		# 	# "picUrl": "http://static.esf.fangdd.com/esf/factoringwebsiteesffdd/icon_fdd-1_tvW.svg",
+		# 	"picUrl": "https://static.esf.fangdd.com/esf/agentservicewebsiteesffdd/icon_denglv-2Qnre.png",
+		# 	"messageUrl": result_path}
+		"text": {
+			"content": f"测试下：{content}"
+		},
+	}
+	r = requests.post(robot_url, json=robot_body)
+	if r.status_code == 200:
+		return True
+	else:
+		return False
+
+
 if __name__ == '__main__':
 	# _str = '2020-08-17'
 	# _str_list = list(map(lambda x: int(x), _str.split("-")))
 	# print(_str_list)
 	# print(get_week_of_month(_str_list[0], _str_list[1], _str_list[2]))
 	# print(monthOfTime())
-	print(time_id())
+	print(ding_push())
