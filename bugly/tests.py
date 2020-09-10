@@ -1,112 +1,5 @@
 from django.test import TestCase
 from mypro.common.func import ding_push
-<<<<<<< HEAD
-
-# Create your tests here.
-
-data = {
-	"eventType": "bugly_crash_trend",
-	"timestamp": 1462780713515,
-	"isEncrypt": 0,
-	"eventContent": {
-		"datas": [
-			{
-				"accessUser": 12972,
-				"crashCount": 21,
-				"crashUser": 20,
-				"version": "1.2.3",
-				"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-			},
-			{
-				"accessUser": 15519,
-				"crashCount": 66,
-				"crashUser": 64,
-				"version": "1.2.4",
-				"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-			},
-			{
-				"accessUser": 15120,
-				"crashCount": 1430,
-				"crashUser": 1423,
-				"version": "1.2.5",
-				"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-			},
-			{
-				"accessUser": 15420,
-				"crashCount": 140,
-				"crashUser": 123,
-				"version": "1.2.6",
-				"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-			},
-			{
-				"accessUser": 2599,
-				"crashCount": 140,
-				"crashUser": 1230,
-				"version": "1.2.7",
-				"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-			},
-			{
-				"accessUser": 100000,
-				"crashCount": 140,
-				"crashUser": 123,
-				"version": "1.2.8",
-				"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-			}
-		],
-		"appId": "1104512706",
-		"platformId": 1,
-		"appName": "AF",
-		"date": "20160508",
-		"appUrl": "http://bugly.qq.com/issueIndex?app=1104512706&pid=1&ptag=1005-10000"
-	},
-	"signature": "ACE346A4AE13A23A52A0D0D19350B466AF51728A"
-}
-
-datas = [
-	{
-		"accessUser": 12972,
-		"crashCount": 21,
-		"crashUser": 20,
-		"version": "1.2.3",
-		"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-	},
-	{
-		"accessUser": 15519,
-		"crashCount": 66,
-		"crashUser": 64,
-		"version": "1.2.4",
-		"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-	},
-	{
-		"accessUser": 15120,
-		"crashCount": 1430,
-		"crashUser": 1423,
-		"version": "1.2.5",
-		"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-	},
-	{
-		"accessUser": 15420,
-		"crashCount": 140,
-		"crashUser": 123,
-		"version": "1.2.6",
-		"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-	},
-	{
-		"accessUser": 2599,
-		"crashCount": 140,
-		"crashUser": 1230,
-		"version": "1.2.7",
-		"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-	},
-	{
-		"accessUser": 100000,
-		"crashCount": 140,
-		"crashUser": 123,
-		"version": "1.2.8",
-		"url": "http://bugly.qq.com/realtime?app=1104512706&pid=1&ptag=1005-10003&vers=0.0.0.12.12&time=last_7_day&tab=crash"
-	}
-]
-=======
 import json
 import pymysql
 import pickle
@@ -149,21 +42,11 @@ data_iso = """{'eventType': 'bugly_crash_trend', 'timestamp': 1599700227640, 'is
                              'appId': 'b026190ba2',
                              'appUrl': 'https://bugly.qq.com/v2/crash-reporting/dashboard/b026190ba2?pid=2&from=webhook',
                              'platformId': 2}, 'signature': 'D12CC6FEC6B1381FCF29C636432CB3B536B57D5C'}"""
->>>>>>> d431aa80f7465bd2aca5f807b7156793e8d031c6
 
 # res = sorted(datas, key=lambda keys: keys["accessUser"])
 # print(res)
 # res2 = sorted(datas, key=lambda keys: keys["crashUser"] / keys["accessUser"], reverse=True)
 # print(res2)
-<<<<<<< HEAD
-data["eventContent"]["datas"] = sorted(data["eventContent"]["datas"],
-                                       key=lambda keys: keys["crashUser"] / keys["accessUser"],
-                                       reverse=True)[:5] if len(data["eventContent"]["datas"]) > 5 else sorted(
-	data["eventContent"]["datas"], key=lambda keys: keys["crashUser"] / keys["accessUser"], reverse=True)
-
-# print(data)
-print(ding_push(data))
-=======
 # data["eventContent"]["datas"] = sorted(data["eventContent"]["datas"],
 #                                        key=lambda keys: keys["crashUser"] / keys["accessUser"],
 #                                        reverse=True)[:5] if len(data["eventContent"]["datas"]) > 5 else sorted(
@@ -198,4 +81,3 @@ result = res[0][0]  # bytes
 
 # print(result.decode("utf-8"))
 print(struct.unpack("17d", result[0:8*17]))
->>>>>>> d431aa80f7465bd2aca5f807b7156793e8d031c6

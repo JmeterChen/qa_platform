@@ -1,8 +1,6 @@
 from django.db import models
 
 # Create your models here.
-<<<<<<< HEAD
-=======
 
 
 class BuglyData(models.Model):
@@ -25,4 +23,3 @@ class BuglyData(models.Model):
 
 	class Meta:
 		db_table = 'qa_bugly'
->>>>>>> d431aa80f7465bd2aca5f807b7156793e8d031c6

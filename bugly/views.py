@@ -1,25 +1,14 @@
 from django.shortcuts import render
-<<<<<<< HEAD
-from django.http import HttpResponse
-import json
-from mypro.common.func import ding_push
-# Create your views here.
-=======
 from django.http import JsonResponse
 import json
 from mypro.common.func import ding_push
 # Create your views here.
 from bugly.models import BuglyData
 from bugly import tasks
->>>>>>> d431aa80f7465bd2aca5f807b7156793e8d031c6
 
 
 def bugly_data(request):
 	# return HttpResponse("Hello world!")
-<<<<<<< HEAD
-	req_data = json.loads(request.body)
-	return HttpResponse(ding_push(req_data))
-=======
 	try:
 		req_data = json.loads(request.body)
 		data_to_db = []
@@ -43,4 +32,3 @@ def bugly_data(request):
 	except Exception as e:
 		res = {"code": 90000, "msg": e, "success": False}
 	return JsonResponse(res)
->>>>>>> d431aa80f7465bd2aca5f807b7156793e8d031c6
